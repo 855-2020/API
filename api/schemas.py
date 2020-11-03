@@ -1,6 +1,8 @@
 """
 Pydantic schemas
 """
+from typing import Dict
+
 # pylint: disable=no-name-in-module
 from pydantic import BaseModel
 
@@ -46,3 +48,11 @@ class Activity(BaseModel):
     blue_water: float = 0
     green_water: float = 0
     gray_water: float = 0
+
+
+class Category(BaseModel):
+    name: str
+
+
+class Result(BaseModel):
+    mapping: Dict[Category, float]
