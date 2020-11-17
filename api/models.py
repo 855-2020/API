@@ -36,7 +36,7 @@ class Sector(Base):
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     name = Column(String(100), index=True, nullable=False)
 
-    coefs = relationship("Coefficient", foreign_keys="coefs.source_id", back_populates="source")
+    #coefs = relationship("Coefficient", foreign_keys="coefs.source_id", back_populates="source")
 
 
 class Activity(Base):
@@ -67,9 +67,9 @@ class CoefficientActivity(Base):
         Integer, ForeignKey("sectors.id"), nullable=False, index=True
     )
     activity_id = Column(
-        Integer, ForeignKey("sectors.id"), nullable=False, index=True
+        Integer, ForeignKey("activities.id"), nullable=False, index=True
     )
     value = Column(Float, nullable=False)
 
-    sector = relationship("Sectors")
+    #sector = relationship("Sectors")
     activity = relationship("Activity")
