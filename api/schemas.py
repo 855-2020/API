@@ -36,7 +36,7 @@ class User(UserBase):
 class ActivityBase(BaseModel):
     """Class base for Activity schema"""
 
-    name: Optional[str] = None
+    name: str
     desc: Optional[str] = None
 
 
@@ -106,7 +106,7 @@ class Category(CategoryBase):
 class CoefficientActivityBase(BaseModel):
     """Class base for Coefficient_Activity schema"""
 
-    value = float
+    value: float
 
 
 class CoefficientActivityCreate(BaseModel):
@@ -116,9 +116,9 @@ class CoefficientActivityCreate(BaseModel):
 class CoefficientActivity(BaseModel):
     """Class CoefficientActivity schema"""
 
-    id = int
-    category_id = int
-    activity_id = int
+    id: int
+    category_id: int
+    activity_id: int
 
     class Config:
         """Class used to provide configurations to Pydantic"""
