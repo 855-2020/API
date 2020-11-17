@@ -38,7 +38,8 @@ class Sector(Base):
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     name = Column(String(100), index=True, nullable=False)
 
-    #coefs = relationship("Coefficient", foreign_keys="coefs.source_id", back_populates="source")
+    coefs = relationship("LeontiefCoefficient", lazy="dynamic", foreign_keys=lambda: LeontiefCoefficient.source_id,
+                         back_populates="source")
 
 
 class Activity(Base):
@@ -49,19 +50,19 @@ class Activity(Base):
     desc = Column(String(100))
 
 
-class Coefficient(Base):
-    __tablename__ = "coefs"
+class LeontiefCoefficient(Base):
+    __tablename__ = "coefs_leontief"
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     source_id = Column(Integer, ForeignKey("sectors.id"), nullable=False, index=True)
     target_id = Column(Integer, ForeignKey("sectors.id"), nullable=False, index=True)
     value = Column(Float, nullable=False)
 
-    source = relationship("Sector", foreign_keys=source_id)
-    target = relationship("Sector", foreign_keys=target_id)
+    source = relationship("Sector", foreign_keys=[source_id])
+    target = relationship("Sector", foreign_keys=[target_id])
 
 
-class CoefficientActivity(Base):
+class ActivityCoefficient(Base):
     __tablename__ = "coefs_activity"
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
@@ -73,5 +74,5 @@ class CoefficientActivity(Base):
     )
     value = Column(Float, nullable=False)
 
-    #sector = relationship("Sectors")
+    # sector = relationship("Sectors")
     activity = relationship("Activity")
