@@ -50,9 +50,9 @@ class Activity(BaseModel):
     gray_water: float = 0
 
 
-class Category(BaseModel):
+class Sector(BaseModel):
     name: str
 
 
 class Result(BaseModel):
-    mapping: Dict[Category, float]
+    mapping: Dict[Sector, float]

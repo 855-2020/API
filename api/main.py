@@ -46,12 +46,12 @@ def get_impact(values: Dict[int, float], db: Session = Depends((get_db))):
     return response
 
 
-@app.post("/activity/{category_id}/{category_value}", response_model=Activity)
-def get_results(category_id: int, category_value: float, db: Session = Depends(get_db)):
+@app.post("/activity/{sector_id}/{sector_value}", response_model=Activity)
+def get_results(sector_id: int, sector_value: float, db: Session = Depends(get_db)):
     coefs = db.query(models.CoefficientActivity).filter(
-        models.CoefficientActivity.category_id == category_id
+        models.CoefficientActivity.sector_id == sector_id
     ).all()
-    props = {coef.activity.name: category_value * coef.value for coef in coefs}
+    props = {coef.activity.name: sector_value * coef.value for coef in coefs}
     return Activity(**props)
 
 

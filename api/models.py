@@ -30,15 +30,13 @@ user_roles = Table('user_roles', Base.metadata,
                    )
 
 
-class Category(Base):
-    __tablename__ = "categories"
+class Sector(Base):
+    __tablename__ = "sectors"
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     name = Column(String(100), index=True, nullable=False)
-    parent_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
 
-    # coefs = relationship("Coefficient", foreign_keys="coefs.source_id", back_populates="source")
-    children = relationship("Category", backref=backref("parent", remote_side=[id]))
+    coefs = relationship("Coefficient", foreign_keys="coefs.source_id", back_populates="source")
 
 
 class Activity(Base):
@@ -53,25 +51,25 @@ class Coefficient(Base):
     __tablename__ = "coefs"
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
-    source_id = Column(Integer, ForeignKey("categories.id"), nullable=False, index=True)
-    target_id = Column(Integer, ForeignKey("categories.id"), nullable=False, index=True)
+    source_id = Column(Integer, ForeignKey("sectors.id"), nullable=False, index=True)
+    target_id = Column(Integer, ForeignKey("sectors.id"), nullable=False, index=True)
     value = Column(Float, nullable=False)
 
-    source = relationship("Category", foreign_keys=source_id)
-    target = relationship("Category", foreign_keys=target_id)
+    source = relationship("Sector", foreign_keys=source_id)
+    target = relationship("Sector", foreign_keys=target_id)
 
 
 class CoefficientActivity(Base):
     __tablename__ = "coefs_activity"
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
-    category_id = Column(
-        Integer, ForeignKey("categories.id"), nullable=False, index=True
+    sector_id = Column(
+        Integer, ForeignKey("sectors.id"), nullable=False, index=True
     )
     activity_id = Column(
-        Integer, ForeignKey("activities.id"), nullable=False, index=True
+        Integer, ForeignKey("sectors.id"), nullable=False, index=True
     )
     value = Column(Float, nullable=False)
 
-    category = relationship("Category")
+    sector = relationship("Sectors")
     activity = relationship("Activity")
