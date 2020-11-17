@@ -1,7 +1,33 @@
-from sqlalchemy import Float, Column, ForeignKey, Integer, String
+from sqlalchemy import Float, Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship, backref
 
 from .database import Base
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
+    first_name = Column(String(100), index=True, nullable=False)
+    last_name = Column(String(200), index=True, nullable=False)
+
+    roles = relationship('Role', secondary=lambda: user_roles)
+
+
+class Role(Base):
+    __tablename__ = "roles"
+
+    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+
+    users = relationship('User', secondary=lambda: user_roles)
+
+
+user_roles = Table('user_roles', Base.metadata,
+                   Column('user', Integer, ForeignKey(User.id), primary_key=True),
+                   Column('role', Integer, ForeignKey(Role.id), primary_key=True),
+                   )
 
 
 class Category(Base):
