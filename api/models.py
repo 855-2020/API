@@ -74,5 +74,5 @@ class ActivityCoefficient(Base):
     )
     value = Column(Float, nullable=False)
 
-    # sector = relationship("Sectors")
+    sector = relationship("Sector")
     activity = relationship("Activity")
