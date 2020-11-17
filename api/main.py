@@ -1,16 +1,21 @@
 """
 Main API module
 """
+from datetime import timedelta
 from typing import Dict
 
-from fastapi import FastAPI, Depends
-from sqlalchemy.orm import Session
 import uvicorn
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+from starlette import status
 
 from . import models
-from .deps import get_db
-from .schemas import Activity
 from .database import Base, engine
+from .deps import get_db
+from .routers import users
+from .schemas import Activity
+from .security import JwtToken, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
 
 Base.metadata.create_all(bind=engine)
 
@@ -23,6 +28,22 @@ def home():
     Basis route
     """
     return "Welcome to the API!"
+
+
+@app.post("/login", response_model=JwtToken)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    db_user: models.User = authenticate_user(db, form_data.username, form_data.password)
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": db_user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.post("/activity")
@@ -53,6 +74,9 @@ def get_results(sector_id: int, sector_value: float, db: Session = Depends(get_d
     ).all()
     props = {coef.activity.name: sector_value * coef.value for coef in coefs}
     return Activity(**props)
+
+
+app.include_router(users.router, prefix='/users')
 
 
 if __name__ == "__main__":

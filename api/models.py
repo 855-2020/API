@@ -8,10 +8,12 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
-    first_name = Column(String(100), index=True, nullable=False)
-    last_name = Column(String(200), index=True, nullable=False)
+    username = Column(String(64), index=True, nullable=False)
+    firstname = Column(String(100), index=True, nullable=False)
+    lastname = Column(String(200), index=True, nullable=False)
+    password = Column(String, nullable=False)
 
-    roles = relationship('Role', secondary=lambda: user_roles)
+    roles = relationship('Role', lazy='dynamic', secondary=lambda: user_roles)
 
 
 class Role(Base):
@@ -21,12 +23,12 @@ class Role(Base):
     name = Column(String, nullable=False)
     description = Column(String)
 
-    users = relationship('User', secondary=lambda: user_roles)
+    users = relationship('User', lazy='dynamic', secondary=lambda: user_roles)
 
 
 user_roles = Table('user_roles', Base.metadata,
-                   Column('user', Integer, ForeignKey(User.id), primary_key=True),
-                   Column('role', Integer, ForeignKey(Role.id), primary_key=True),
+                   Column('user_id', Integer, ForeignKey(User.id), primary_key=True),
+                   Column('role_id', Integer, ForeignKey(Role.id), primary_key=True),
                    )
 
 

@@ -1,10 +1,27 @@
 """
 Pydantic schemas
 """
-from typing import Dict
+from typing import Dict, List
 
 # pylint: disable=no-name-in-module
 from pydantic import BaseModel
+
+
+class UserBase(BaseModel):
+    username: str
+    firstname: str
+    lastname: str
+
+
+class UserCreate(UserBase):
+    password: str
+
+
+class User(UserBase):
+    id: int
+
+    class Config:
+        orm_mode = True
 
 
 class Activity(BaseModel):
