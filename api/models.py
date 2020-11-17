@@ -33,7 +33,7 @@ user_roles = Table('user_roles', Base.metadata,
 class Category(Base):
     __tablename__ = "categories"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     name = Column(String(100), index=True, nullable=False)
     parent_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
 
@@ -44,7 +44,7 @@ class Category(Base):
 class Activity(Base):
     __tablename__ = "activities"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     name = Column(String(10))
     desc = Column(String(100))
 
@@ -52,7 +52,7 @@ class Activity(Base):
 class Coefficient(Base):
     __tablename__ = "coefs"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     source_id = Column(Integer, ForeignKey("categories.id"), nullable=False, index=True)
     target_id = Column(Integer, ForeignKey("categories.id"), nullable=False, index=True)
     value = Column(Float, nullable=False)
@@ -64,7 +64,7 @@ class Coefficient(Base):
 class CoefficientActivity(Base):
     __tablename__ = "coefs_activity"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     category_id = Column(
         Integer, ForeignKey("categories.id"), nullable=False, index=True
     )
