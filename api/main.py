@@ -5,10 +5,9 @@ from datetime import timedelta
 from typing import Dict
 
 import uvicorn
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from starlette import status
 
 from . import models
 from .database import Base, engine
