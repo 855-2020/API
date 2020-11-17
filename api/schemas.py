@@ -1,75 +1,126 @@
 """
 Pydantic schemas
 """
-from typing import Dict, List
+from typing import Optional
 
 # pylint: disable=no-name-in-module
 from pydantic import BaseModel
 
 
 class UserBase(BaseModel):
+    """Class base for User"""
+
     username: str
     firstname: str
     lastname: str
 
 
 class UserCreate(UserBase):
+    """Class for create User methods"""
+
     password: str
 
 
 class User(UserBase):
+    """Class User schema"""
+
     id: int
 
     class Config:
+        """Class used to provide configurations to Pydantic"""
+
         orm_mode = True
 
 
-class Activity(BaseModel):
-    """
-    Activity models an economic activity
+# Activity
+class ActivityBase(BaseModel):
+    """Class base for Activity schema"""
 
-    Attributes
-    ----------
-
-    gdp : float
-          The percentage of the Gross Domestic Product this
-          activity is responsible for
-
-    jobs : float
-           Average number of jobs employed by this activity
-
-    energy : float
-             Amount of energy used, in Terajoules
-
-    co2eq : float
-            Amount of CO2Equivalent this activity generates
-
-    land_usage : float
-                 Area of land used by this activity, in 1000ha
-
-    blue_water : float
-                 Volume of blue water used by this activity, in 1000m³
-
-    green_water : float
-                 Volume of green water used by this activity, in 1000m³
-
-    gray_water : float
-                 Volume of gray water used by this activity, in 1000m³
-    """
-
-    gdp: float = 0
-    jobs: float = 0
-    energy: float = 0
-    co2eq: float = 0
-    land_usage: float = 0
-    blue_water: float = 0
-    green_water: float = 0
-    gray_water: float = 0
+    name: Optional[str] = None
+    desc: Optional[str] = None
 
 
-class Sector(BaseModel):
+class ActivityCreate(ActivityBase):
+    """Class for create Activity methods"""
+
+
+class Activity(ActivityBase):
+    """Class Activity schema"""
+
+    id: int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
+
+
+# Coefficient
+class CoefficientBase(BaseModel):
+    """Class base for Coefficient schema"""
+
+    value: str
+
+
+class CoefficientCreate(CoefficientBase):
+    """Class for create Coefficient methods"""
+
+
+class Coefficient(CoefficientBase):
+    """Class Coefficient schema"""
+
+    id: int
+    source_id: int
+    target_id: int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
+
+
+# Category
+class CategoryBase(BaseModel):
+    """Class base for Category schema"""
+
     name: str
 
 
-class Result(BaseModel):
-    mapping: Dict[Sector, float]
+class CategoryCreate(CategoryBase):
+    """Class for create Category methods"""
+
+
+class Category(CategoryBase):
+    """Class Category schema"""
+
+    id: int
+    parent_id: int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
+
+
+# Coefficient_Activity
+class CoefficientActivityBase(BaseModel):
+    """Class base for Coefficient_Activity schema"""
+
+    value = float
+
+
+class CoefficientActivityCreate(BaseModel):
+    """Class for create CoefficientActivityCreate methods"""
+
+
+class CoefficientActivity(BaseModel):
+    """Class CoefficientActivity schema"""
+
+    id = int
+    category_id = int
+    activity_id = int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
