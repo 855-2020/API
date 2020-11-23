@@ -56,17 +56,17 @@ class Activity(ActivityBase):
 
 
 # Coefficient
-class CoefficientBase(BaseModel):
+class LeontiefCoefficientBase(BaseModel):
     """Class base for Coefficient schema"""
 
     value: str
 
 
-class CoefficientCreate(CoefficientBase):
+class LeontiefCoefficientCreate(LeontiefCoefficientBase):
     """Class for create Coefficient methods"""
 
 
-class Coefficient(CoefficientBase):
+class LeontiefCoefficient(LeontiefCoefficientBase):
     """Class Coefficient schema"""
 
     id: int
@@ -124,3 +124,19 @@ class CoefficientActivity(BaseModel):
         """Class used to provide configurations to Pydantic"""
 
         orm_mode = True
+
+class SectorBase(BaseModel):
+    """Class base for Sector schema"""
+
+    name: str
+
+
+class Sector(SectorBase):
+    """Class Sector schema"""
+
+    id: int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+        orm_mode = True
+

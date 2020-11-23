@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from . import models
 from .database import Base, engine
 from .deps import get_db
-from .routers import users
+from .routers import users, sectors
 from .schemas import Activity
 from .security import JwtToken, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
 
@@ -76,6 +76,7 @@ def get_results(sector_id: int, sector_value: float, db: Session = Depends(get_d
 
 
 app.include_router(users.router, prefix='/users')
+app.include_router(sectors.router, prefix='/sectors')
 
 
 if __name__ == "__main__":
