@@ -1,7 +1,6 @@
 """
 Pydantic schemas
 """
-from typing import Optional
 
 # pylint: disable=no-name-in-module
 from pydantic import BaseModel
@@ -32,12 +31,57 @@ class User(UserBase):
         orm_mode = True
 
 
+# Model
+class ModelBase(BaseModel):
+    """Class base for Model schema"""
+
+
+class ModelCreate(ModelBase):
+    """Class for create Model methods"""
+
+
+class Model(ModelBase):
+    """Class Model schema"""
+
+    id: int
+    model_id: int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
+
+
+# Sector
+class SectorBase(BaseModel):
+    """Class base for Sector schema"""
+
+    name: str
+    value_added: float
+
+
+class SectorCreate(SectorBase):
+    """Class for create Sector methods"""
+
+
+class Sector(SectorBase):
+    """Class Sector schema"""
+
+    id: int
+    model_id: int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
+
+
 # Activity
 class ActivityBase(BaseModel):
     """Class base for Activity schema"""
 
     name: str
-    desc: Optional[str] = None
+    desc: str
 
 
 class ActivityCreate(ActivityBase):
@@ -55,19 +99,19 @@ class Activity(ActivityBase):
         orm_mode = True
 
 
-# Coefficient
-class LeontiefCoefficientBase(BaseModel):
-    """Class base for Coefficient schema"""
+# Economic Coefficient
+class EconomicCoefficientBase(BaseModel):
+    """Class base for Economic Coefficient schema"""
 
     value: str
 
 
-class LeontiefCoefficientCreate(LeontiefCoefficientBase):
-    """Class for create Coefficient methods"""
+class EconomicCoefficientCreate(EconomicCoefficientBase):
+    """Class for create Economic Coefficient methods"""
 
 
-class LeontiefCoefficient(LeontiefCoefficientBase):
-    """Class Coefficient schema"""
+class EconomicCoefficient(EconomicCoefficientBase):
+    """Class Economic Coefficient schema"""
 
     id: int
     source_id: int
@@ -79,22 +123,23 @@ class LeontiefCoefficient(LeontiefCoefficientBase):
         orm_mode = True
 
 
-# Category
-class CategoryBase(BaseModel):
-    """Class base for Category schema"""
+# Leontief Coefficient
+class LeontiefCoefficientBase(BaseModel):
+    """Class base for Leontief Coefficient schema"""
 
-    name: str
-
-
-class CategoryCreate(CategoryBase):
-    """Class for create Category methods"""
+    value: str
 
 
-class Category(CategoryBase):
-    """Class Category schema"""
+class LeontiefCoefficientCreate(LeontiefCoefficientBase):
+    """Class for create Leontief Coefficient methods"""
+
+
+class LeontiefCoefficient(LeontiefCoefficientBase):
+    """Class Leontief Coefficient schema"""
 
     id: int
-    parent_id: int
+    source_id: int
+    target_id: int
 
     class Config:
         """Class used to provide configurations to Pydantic"""
@@ -102,41 +147,25 @@ class Category(CategoryBase):
         orm_mode = True
 
 
-# Coefficient_Activity
-class CoefficientActivityBase(BaseModel):
+# Activity Coefficient
+class ActivityCoefficientBase(BaseModel):
     """Class base for Coefficient_Activity schema"""
 
     value: float
 
 
-class CoefficientActivityCreate(BaseModel):
+class ActivityCoefficientCreate(ActivityCoefficientBase):
     """Class for create CoefficientActivityCreate methods"""
 
 
-class CoefficientActivity(BaseModel):
+class ActivityCoefficient(ActivityCoefficientBase):
     """Class CoefficientActivity schema"""
 
     id: int
-    category_id: int
+    sector_id: int
     activity_id: int
 
     class Config:
         """Class used to provide configurations to Pydantic"""
 
         orm_mode = True
-
-class SectorBase(BaseModel):
-    """Class base for Sector schema"""
-
-    name: str
-
-
-class Sector(SectorBase):
-    """Class Sector schema"""
-
-    id: int
-
-    class Config:
-        """Class used to provide configurations to Pydantic"""
-        orm_mode = True
-
