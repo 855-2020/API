@@ -20,7 +20,7 @@ def get_models(db: Session):
 def get_model(db: Session, model_id: int):
     """Retrieve an model by id"""
 
-    return db.query(models.Model).filter(models.Model.id == model_id).first()
+    return db.query(models.Model).filter_by(id = model_id).first()
 
 
 def save_model(db: Session, model: schemas.Model):
