@@ -2,7 +2,7 @@
 Main API module
 """
 from datetime import timedelta
-from typing import Dict
+from typing import Dict, List
 
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, status
@@ -50,6 +50,11 @@ def create_activity(activity: Activity):
     print(activity)
 
     return "Activity created!"
+
+
+@app.get("/activities/list", response_model=List[Activity])
+def list_activities(db: Session = Depends(get_db)):
+    return db.query(models.Activity).all()
 
 
 # TODO proper model
