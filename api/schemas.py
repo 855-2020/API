@@ -31,27 +31,6 @@ class User(UserBase):
         orm_mode = True
 
 
-# Model
-class ModelBase(BaseModel):
-    """Class base for Model schema"""
-
-
-class ModelCreate(ModelBase):
-    """Class for create Model methods"""
-
-
-class Model(ModelBase):
-    """Class Model schema"""
-
-    id: int
-    model_id: int
-
-    class Config:
-        """Class used to provide configurations to Pydantic"""
-
-        orm_mode = True
-
-
 # Sector
 class SectorBase(BaseModel):
     """Class base for Sector schema"""
