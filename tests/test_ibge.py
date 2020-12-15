@@ -2,7 +2,7 @@
 Tests for the IBGE importer
 """
 import pyexcel as p
-from pytest import fixture
+from pytest import raises, fixture
 
 from api import ibge
 
@@ -24,6 +24,21 @@ def test_load_sectors(book):
     )
 
     assert sectors[-1] == "9700 Serviços domésticos"
+
+
+def test_load_sheet(book):
+    assert len(ibge.load_sheet(book, "03")) == 137
+
+    with raises(Exception) as e:
+        ibge.load_sheet(book, "potato")
+
+    assert "potato" in str(e)
+
+
+def test_get_national_supply_demand(book):
+    supply_demand = ibge.get_national_supply_demand(book)
+
+    assert supply_demand.shape == (127, 67)
 
 
 def test_build_z_matrix(book):

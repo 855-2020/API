@@ -1,7 +1,25 @@
 """
 Adquire dados do IBGE
 """
+from functools import lru_cache
+import numpy as np
 from requests import get
+
+
+@lru_cache(maxsize=10)
+def load_sheet(book, sheet_name):
+    if not isinstance(book, dict):
+        book = book.to_dict()
+
+    try:
+        sheet = book[sheet_name]
+    except KeyError as e:
+        sheets = book.keys()
+        raise Exception(
+            f"Planilha {sheet_name} não encontrada! Planilhas: {list(sheets)}"
+        ) from e
+
+    return sheet
 
 
 def acquire_data(year):
@@ -18,17 +36,21 @@ def load_sectors(book):
     """
     Given a loaded pyexcel book, returns the sectors
     """
-    if not isinstance(book, dict):
-        book = book.to_dict()
-
-    try:
-        three = book["03"]
-    except KeyError as e:
-        sheets = book.keys()
-        raise Exception(f"Planilha 03 não encontrada! Planilhas: {list(sheets)}") from e
+    three = load_sheet(book, "03")
 
     names = three[3]
     return [name.replace("\n", " ") for name in names[3:-9]]
+
+
+def get_national_supply_demand(book):
+    """
+    Given a loaded pyexcel book, returns the supply-demand
+    indices for the local market
+    """
+    three = load_sheet(book, "03")
+
+    data = np.array(three)
+    return data[5:-5, 3:-9]
 
 
 def build_z_matrix(book):
