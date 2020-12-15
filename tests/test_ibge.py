@@ -61,3 +61,5 @@ def test_build_z_matrix(book):
         == "0191 Agricultura, inclusive o apoio à agricultura e a pós-colheita"
     )
     assert z_matrix[-1][0] == "9700 Serviços domésticos"
+
+    assert int(z_matrix[1][1]) == 6512

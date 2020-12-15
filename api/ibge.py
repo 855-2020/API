@@ -68,7 +68,10 @@ def build_z_matrix(book):
     """
 
     sectors = load_sectors(book)
-    data = [["Matriz Z", *sectors], *[[s] for s in sectors]]
+    marketshare = get_marketshare(book)
+    supply_demand = get_national_supply_demand(book)
+    z = marketshare @ supply_demand
+    data = [["Matriz Z", *sectors], *[[s, *z[idx]] for idx, s in enumerate(sectors)]]
     return data
 
 
