@@ -28,7 +28,7 @@ def load_sectors(book):
         raise Exception(f"Planilha 03 não encontrada! Planilhas: {list(sheets)}") from e
 
     names = three[3]
-    return names[3:-9]
+    return [name.replace("\n", " ") for name in names[3:-9]]
 
 
 def build_z_matrix(book):
