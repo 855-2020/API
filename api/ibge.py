@@ -50,7 +50,16 @@ def get_national_supply_demand(book):
     three = load_sheet(book, "03")
 
     data = np.array(three)
-    return data[5:-5, 3:-9]
+    return data[5:-5, 3:-9].astype("float")
+
+
+def get_marketshare(book):
+    """
+    Returns the marketshare matrix on sheet 13
+    """
+    marketshare = load_sheet(book, "13")
+    marketshare = np.array(marketshare)
+    return marketshare[5:-3, 2:].astype("float")
 
 
 def build_z_matrix(book):

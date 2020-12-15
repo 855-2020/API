@@ -39,6 +39,14 @@ def test_get_national_supply_demand(book):
     supply_demand = ibge.get_national_supply_demand(book)
 
     assert supply_demand.shape == (127, 67)
+    assert supply_demand[0, 0] == 166
+
+
+def test_get_marketshare(book):
+    market_share = ibge.get_marketshare(book)
+    assert market_share.shape == (67, 127)
+    assert market_share[0, 0] == 0.956052917723813
+    assert market_share[-1, -1] == 1
 
 
 def test_build_z_matrix(book):
