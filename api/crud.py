@@ -61,54 +61,6 @@ def save_activity(db: Session, activity: schemas.Activity):
     return db_activity
 
 
-# Economic Coefficient
-def get_economic_coefficients_by_source(db: Session, keys: List[int]):
-    """List of all Economic coefficient by source id"""
-
-    return (db.query(models.EconomicCoefficient)
-            .filter(models.EconomicCoefficient.source_id.in_(keys))
-            .all())
-
-
-def get_economic_coefficient(db: Session, coefficient_id: int):
-    """Retrieve an Economic coefficient by id"""
-
-    return db.query(models.EconomicCoefficient).filter_by(id=coefficient_id).first()
-
-
-def save_econonomic_coefficient(db: Session, coefficient: schemas.EconomicCoefficient):
-    """Save new Economic coefficient"""
-
-    db_coefficient = models.EconomicCoefficient(**coefficient.dict())
-    db.merge(db_coefficient)
-    db.commit()
-    return db_coefficient
-
-
-# Leontief Coefficient
-def get_leontief_coefficients_by_source(db: Session, keys: List[int]):
-    """List of all Leontief Coefficients by source id"""
-
-    return (db.query(models.LeontiefCoefficient)
-            .filter(models.LeontiefCoefficient.source_id.in_(keys))
-            .all())
-
-
-def get_leontief_coefficient(db: Session, coefficient_id: int):
-    """Retrieve an Leontief Coefficient by id"""
-
-    return db.query(models.LeontiefCoefficient).filter_by(id=coefficient_id).first()
-
-
-def save_leontief_coefficient(db: Session, coefficient: schemas.LeontiefCoefficient):
-    """Save new Leontief Coefficient"""
-
-    db_coefficient = models.LeontiefCoefficient(**coefficient.dict())
-    db.merge(db_coefficient)
-    db.commit()
-    return db_coefficient
-
-
 # Sector
 def get_sector(db: Session, sector_id: int):
     """Retrieve an sector by id"""

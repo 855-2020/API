@@ -58,15 +58,7 @@ class Sector(Base):
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     name = Column(String(100), index=True, nullable=False)
-    model_id = Column(Integer, ForeignKey(Model.id))
     value_added = Column(Float, nullable=False)
-
-    economic_coefs = relationship("EconomicCoefficient", lazy="dynamic",
-                                  foreign_keys=lambda: EconomicCoefficient.source_id,
-                                  back_populates="source")
-    leontief_coefs = relationship("LeontiefCoefficient", lazy="dynamic",
-                                  foreign_keys=lambda: LeontiefCoefficient.source_id,
-                                  back_populates="source")
 
 
 class Activity(Base):
@@ -75,30 +67,6 @@ class Activity(Base):
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     name = Column(String(10))
     desc = Column(String(100))
-
-
-class EconomicCoefficient(Base):
-    __tablename__ = "coefs_economic"
-
-    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
-    source_id = Column(Integer, ForeignKey("sectors.id"), nullable=False, index=True)
-    target_id = Column(Integer, ForeignKey("sectors.id"), nullable=False, index=True)
-    value = Column(Float, nullable=False)
-
-    source = relationship("Sector", foreign_keys=[source_id])
-    target = relationship("Sector", foreign_keys=[target_id])
-
-
-class LeontiefCoefficient(Base):
-    __tablename__ = "coefs_leontief"
-
-    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
-    source_id = Column(Integer, ForeignKey("sectors.id"), nullable=False, index=True)
-    target_id = Column(Integer, ForeignKey("sectors.id"), nullable=False, index=True)
-    value = Column(Float, nullable=False)
-
-    source = relationship("Sector", foreign_keys=[source_id])
-    target = relationship("Sector", foreign_keys=[target_id])
 
 
 class ActivityCoefficient(Base):
