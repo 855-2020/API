@@ -1,4 +1,4 @@
-from sqlalchemy import Float, Column, ForeignKey, Integer, String, Table
+from sqlalchemy import Boolean, Float, Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship, backref
 
 from .database import Base
@@ -12,6 +12,7 @@ class User(Base):
     firstname = Column(String(100), index=True, nullable=False)
     lastname = Column(String(200), index=True, nullable=False)
     password = Column(String, nullable=False)
+    enabled = Column(Boolean, nullable=False, default=True)
 
     roles = relationship('Role', lazy='dynamic', secondary=lambda: user_roles)
 
