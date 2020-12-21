@@ -6,9 +6,21 @@ CRUD
 # pylint: disable=no-name-in-module
 
 from typing import List
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, Query
 
 from . import models, schemas
+
+
+def query_guest_role(db: Session) -> Query:
+    return db.query(models.Role.id).filter_by(name="guest")
+
+
+def query_user_role_list(db: Session, user_id: int) -> Query:
+    return db.query(models.Role.id) \
+        .select_from(models.User) \
+        .join(models.User.roles) \
+        .filter(models.User.id == user_id) \
+        .union(query_guest_role(db))
 
 
 # Model
@@ -16,6 +28,15 @@ def get_model(db: Session, model_id: int):
     """Retrieve an model by id"""
 
     return db.query(models.Model).filter_by(id=model_id).first()
+
+
+def get_models_filtered_role(db: Session, roles: Query):
+    """Retrieve models filtered by roles"""
+
+    return db.query(models.Model) \
+        .join(models.Model.roles) \
+        .filter(models.Role.id.in_(roles.subquery())) \
+        .all()
 
 
 # Activity
@@ -40,8 +61,8 @@ def get_economic_coefficients_by_source(db: Session, keys: List[int]):
 
     coefs = (
         db.query(models.EconomicCoefficient)
-        .filter(models.EconomicCoefficient.source_id.in_(keys))
-        .all()
+            .filter(models.EconomicCoefficient.source_id.in_(keys))
+            .all()
     )
     return coefs
 
@@ -67,8 +88,8 @@ def get_leontief_coefficients_by_source(db: Session, keys: List[int]):
 
     coefs = (
         db.query(models.LeontiefCoefficient)
-        .filter(models.LeontiefCoefficient.source_id.in_(keys))
-        .all()
+            .filter(models.LeontiefCoefficient.source_id.in_(keys))
+            .all()
     )
     return coefs
 
@@ -110,8 +131,8 @@ def get_coefficient_activities_by_sector(db: Session, sector_id: int):
 
     coefs = (
         db.query(models.ActivityCoefficient)
-        .filter(models.ActivityCoefficient.sector_id == sector_id)
-        .all()
+            .filter(models.ActivityCoefficient.sector_id == sector_id)
+            .all()
     )
     return coefs
 
@@ -123,7 +144,7 @@ def get_coefficient_activity(db: Session, coefficient_id: int):
 
 
 def save_coefficientactivity(
-    db: Session, coefficient_activities: schemas.ActivityCoefficient
+        db: Session, coefficient_activities: schemas.ActivityCoefficient
 ):
     """Save new CoefficientActivity"""
 

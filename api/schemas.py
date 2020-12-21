@@ -3,6 +3,8 @@ Pydantic schemas
 """
 
 # pylint: disable=no-name-in-module
+from typing import List
+
 from pydantic import BaseModel
 
 
@@ -48,6 +50,31 @@ class Sector(SectorBase):
 
     id: int
     model_id: int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
+
+
+class ModelBase(BaseModel):
+    """Class base for Model"""
+
+    name: str
+    description: str
+    sectors: List[Sector]
+    economic_matrix: List[int]
+    leontief_matrix: List[int]
+
+
+class ModelCreate(ModelBase):
+    """Class for create Model methods"""
+
+
+class Model(BaseModel):
+    """Class Model schema"""
+
+    id: int
 
     class Config:
         """Class used to provide configurations to Pydantic"""
