@@ -3,9 +3,10 @@ Pydantic schemas
 """
 
 # pylint: disable=no-name-in-module
-from typing import List
+import json
+from typing import List, Optional, Sequence, Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, SecretStr, validator
 
 
 class UserBase(BaseModel):
@@ -19,7 +20,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     """Class for create User methods"""
 
-    password: str
+    password: SecretStr
 
 
 class User(UserBase):
@@ -61,17 +62,21 @@ class ModelBase(BaseModel):
     """Class base for Model"""
 
     name: str
-    description: str
+    description: Optional[str]
     sectors: List[Sector]
-    economic_matrix: List[int]
-    leontief_matrix: List[int]
+    economic_matrix: List[List[float]]
+    leontief_matrix: List[List[float]]
+
+    @validator('economic_matrix', 'leontief_matrix', pre=True)
+    def convert_numpy(cls, value):
+        return value.tolist()
 
 
 class ModelCreate(ModelBase):
     """Class for create Model methods"""
 
 
-class Model(BaseModel):
+class Model(ModelBase):
     """Class Model schema"""
 
     id: int

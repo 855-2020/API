@@ -21,7 +21,7 @@ def create_new(user: UserCreate, db: Session = Depends(get_db)):
             status_code=status.HTTP_409_CONFLICT,
             detail="Username already exists"
         )
-    user.password = get_password_hash(user.password)
+    user.password = get_password_hash(user.password.get_secret_value())
     new_user = models.User(**user.dict())
     db.add(new_user)
     db.commit()

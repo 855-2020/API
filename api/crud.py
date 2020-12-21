@@ -36,7 +36,7 @@ def get_model(db: Session, model_id: int):
     return db.query(models.Model).filter_by(id=model_id).first()
 
 
-def get_models_filtered_role(db: Session, roles: Query):
+def get_models_filtered_role(db: Session, roles: Query) -> List[models.Model]:
     """Retrieve models filtered by roles"""
 
     return (db.query(models.Model)

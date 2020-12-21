@@ -1,7 +1,7 @@
 import sys
 from datetime import datetime, timedelta
 from os import environ
-from typing import Optional
+from typing import Optional, Union
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -35,11 +35,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
 
 
-def verify_password(plain_password, hashed_password):
+def verify_password(plain_password: Union[str, bytes], hashed_password: Union[str, bytes]) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_password_hash(password):
+def get_password_hash(password: Union[str, bytes]) -> str:
     return pwd_context.hash(password)
 
 

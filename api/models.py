@@ -1,7 +1,7 @@
-from sqlalchemy import Boolean, Float, Column, ForeignKey, Integer, String, Table
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy import Boolean, LargeBinary, Float, Column, ForeignKey, Integer, String, Table
+from sqlalchemy.orm import relationship
 
-from .database import Base
+from .database import Base, NumpyColumnType
 
 
 class User(Base):
@@ -38,6 +38,10 @@ class Model(Base):
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
+    description = Column(String)
+
+    economic_matrix = Column(NumpyColumnType, nullable=False)
+    leontief_matrix = Column(NumpyColumnType, nullable=False)
 
     sectors = relationship("Sector", backref="model")
     roles = relationship('Role', lazy='dynamic', secondary=lambda: model_roles)
