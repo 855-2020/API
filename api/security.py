@@ -9,10 +9,11 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 # pylint: disable=no-name-in-module
 from pydantic import BaseModel
+from sqlalchemy import literal
 from sqlalchemy.orm import Session
 
 from .deps import get_db
-from .models import User, Role
+from .models import User, Role, Model
 
 SECRET_KEY = environ.get('HIDS_JWT_SECRET_KEY') or sys.exit("Must provide HIDS_JWT_SECRET_KEY env var")
 ALGORITHM = "HS256"
@@ -105,3 +106,15 @@ async def get_admin_user(db_user: User = Depends(get_current_user)) -> User:
     if query.first():
         return db_user
     raise credentials_exception
+
+
+def can_access_model(user_id: int, model_id: int, db: Session) -> bool:
+    quser = db.query(Role.id)\
+        .select_from(User)\
+        .join(User.roles)\
+        .filter(User.id == user_id)
+    qmodel = db.query(Role.id)\
+        .select_from(Model)\
+        .join(Model.roles)\
+        .filter(Model.id == model_id)
+    return db.query(literal(True)).filter(quser.intersect(qmodel).exists()).scalar()
