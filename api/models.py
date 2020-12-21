@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, LargeBinary, Float, Column, ForeignKey, Integer, String, Table
+from sqlalchemy import Boolean, Float, Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
 from .database import Base, NumpyColumnType
@@ -58,6 +58,7 @@ class Sector(Base):
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     name = Column(String(100), index=True, nullable=False)
+    model_id = Column(Integer, ForeignKey(Model.id))
     value_added = Column(Float, nullable=False)
 
 

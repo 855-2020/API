@@ -2,10 +2,10 @@
 Pydantic schemas
 """
 
-# pylint: disable=no-name-in-module
-import json
-from typing import List, Optional, Sequence, Any
+from typing import List, Optional
 
+# pylint: disable=no-name-in-module
+import numpy
 from pydantic import BaseModel, SecretStr, validator
 
 
@@ -69,7 +69,7 @@ class ModelBase(BaseModel):
 
     @validator('economic_matrix', 'leontief_matrix', pre=True)
     def convert_numpy(cls, value):
-        return value.tolist()
+        return value.tolist() if isinstance(value, numpy.ndarray) else value
 
 
 class ModelCreate(ModelBase):

@@ -5,7 +5,7 @@ CRUD
 # pylint: disable=C0321
 # pylint: disable=no-name-in-module
 
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import literal
 from sqlalchemy.orm import Session, Query
@@ -30,10 +30,11 @@ def is_user_admin(db: Session, db_user: models.User) -> bool:
 
 
 # Model
-def get_model(db: Session, model_id: int):
+def get_model(db: Session, model_id: int, roles: Query) -> Optional[models.Model]:
     """Retrieve an model by id"""
 
-    return db.query(models.Model).filter_by(id=model_id).first()
+    return (db.query(models.Model).filter_by(id=model_id).join(models.Model.roles)
+            .filter(models.Role.id.in_(roles.subquery())).scalar())
 
 
 def get_models_filtered_role(db: Session, roles: Query) -> List[models.Model]:
