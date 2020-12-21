@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from sqlalchemy import literal
 from sqlalchemy.orm import Session
 
+from . import crud
 from .deps import get_db
 from .models import User, Role, Model
 
@@ -96,25 +97,24 @@ async def get_current_user(db_user: Optional[User] = Depends(get_current_user_op
     return db_user
 
 
-async def get_admin_user(db_user: User = Depends(get_current_user)) -> User:
-    credentials_exception = HTTPException(
+async def get_admin_user(db_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> User:
+    if crud.is_user_admin(db, db_user):
+        return db_user
+    else:
+        raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="User does not have enough permission",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    query = db_user.roles.filter(Role.name == 'admin')
-    if query.first():
-        return db_user
-    raise credentials_exception
 
 
 def can_access_model(user_id: int, model_id: int, db: Session) -> bool:
-    quser = db.query(Role.id)\
-        .select_from(User)\
-        .join(User.roles)\
-        .filter(User.id == user_id)
-    qmodel = db.query(Role.id)\
-        .select_from(Model)\
-        .join(Model.roles)\
-        .filter(Model.id == model_id)
-    return db.query(literal(True)).filter(quser.intersect(qmodel).exists()).scalar()
+    quser = (db.query(Role.id)
+             .select_from(User)
+             .join(User.roles)
+             .filter(User.id == user_id))
+    qmodel = (db.query(Role.id)
+              .select_from(Model)
+              .join(Model.roles)
+              .filter(Model.id == model_id))
+    return db.query(literal(True)).filter(quser.intersect(qmodel).exists()).scalar() or False

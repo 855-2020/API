@@ -6,6 +6,8 @@ CRUD
 # pylint: disable=no-name-in-module
 
 from typing import List
+
+from sqlalchemy import literal
 from sqlalchemy.orm import Session, Query
 
 from . import models, schemas
@@ -21,6 +23,10 @@ def query_user_role_list(db: Session, user_id: int) -> Query:
             .join(models.User.roles)
             .filter(models.User.id == user_id)
             .union(query_guest_role(db)))
+
+
+def is_user_admin(db: Session, db_user: models.User) -> bool:
+    return db.query(literal(True)).filter(db_user.roles.filter(models.Role.name == 'admin').exists()).scalar() or False
 
 
 # Model
