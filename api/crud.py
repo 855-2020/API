@@ -16,11 +16,11 @@ def query_guest_role(db: Session) -> Query:
 
 
 def query_user_role_list(db: Session, user_id: int) -> Query:
-    return db.query(models.Role.id) \
-        .select_from(models.User) \
-        .join(models.User.roles) \
-        .filter(models.User.id == user_id) \
-        .union(query_guest_role(db))
+    return (db.query(models.Role.id)
+            .select_from(models.User)
+            .join(models.User.roles)
+            .filter(models.User.id == user_id)
+            .union(query_guest_role(db)))
 
 
 # Model
@@ -33,10 +33,10 @@ def get_model(db: Session, model_id: int):
 def get_models_filtered_role(db: Session, roles: Query):
     """Retrieve models filtered by roles"""
 
-    return db.query(models.Model) \
-        .join(models.Model.roles) \
-        .filter(models.Role.id.in_(roles.subquery())) \
-        .all()
+    return (db.query(models.Model)
+            .join(models.Model.roles)
+            .filter(models.Role.id.in_(roles.subquery()))
+            .all())
 
 
 # Activity
@@ -59,12 +59,9 @@ def save_activity(db: Session, activity: schemas.Activity):
 def get_economic_coefficients_by_source(db: Session, keys: List[int]):
     """List of all Economic coefficient by source id"""
 
-    coefs = (
-        db.query(models.EconomicCoefficient)
+    return (db.query(models.EconomicCoefficient)
             .filter(models.EconomicCoefficient.source_id.in_(keys))
-            .all()
-    )
-    return coefs
+            .all())
 
 
 def get_economic_coefficient(db: Session, coefficient_id: int):
@@ -86,12 +83,9 @@ def save_econonomic_coefficient(db: Session, coefficient: schemas.EconomicCoeffi
 def get_leontief_coefficients_by_source(db: Session, keys: List[int]):
     """List of all Leontief Coefficients by source id"""
 
-    coefs = (
-        db.query(models.LeontiefCoefficient)
+    return (db.query(models.LeontiefCoefficient)
             .filter(models.LeontiefCoefficient.source_id.in_(keys))
-            .all()
-    )
-    return coefs
+            .all())
 
 
 def get_leontief_coefficient(db: Session, coefficient_id: int):
@@ -129,12 +123,9 @@ def save_sector(db: Session, sector: schemas.Sector):
 def get_coefficient_activities_by_sector(db: Session, sector_id: int):
     """List of all CoefficientActivities by sector id"""
 
-    coefs = (
-        db.query(models.ActivityCoefficient)
+    return (db.query(models.ActivityCoefficient)
             .filter(models.ActivityCoefficient.sector_id == sector_id)
-            .all()
-    )
-    return coefs
+            .all())
 
 
 def get_coefficient_activity(db: Session, coefficient_id: int):
@@ -143,14 +134,10 @@ def get_coefficient_activity(db: Session, coefficient_id: int):
     return db.query(models.ActivityCoefficient).filter_by(id=coefficient_id).first()
 
 
-def save_coefficientactivity(
-        db: Session, coefficient_activities: schemas.ActivityCoefficient
-):
+def save_coefficientactivity(db: Session, coefficient_activities: schemas.ActivityCoefficient):
     """Save new CoefficientActivity"""
 
-    db_cefficient_activities = models.ActivityCoefficient(
-        **coefficient_activities.dict()
-    )
+    db_cefficient_activities = models.ActivityCoefficient(**coefficient_activities.dict())
     db.merge(db_cefficient_activities)
     db.commit()
     return db_cefficient_activities
