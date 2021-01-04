@@ -3,6 +3,8 @@ Adquire dados do IBGE
 """
 from functools import lru_cache
 import numpy as np
+import pandas as pd
+import pyexcel as p
 from requests import get
 
 
@@ -55,7 +57,8 @@ def get_national_supply_demand(book):
 
 def get_marketshare(book):
     """
-    Returns the marketshare matrix on sheet 13
+    Returns the marketshare matrix on sheet 13.
+    This matrix is also called 'matrix D'
     """
     marketshare = load_sheet(book, "13")
     marketshare = np.array(marketshare)
@@ -70,13 +73,18 @@ def build_z_matrix(book):
     sectors = load_sectors(book)
     marketshare = get_marketshare(book)
     supply_demand = get_national_supply_demand(book)
-    z = marketshare @ supply_demand
-    data = [["Matriz Z", *sectors], *[[s, *z[idx]] for idx, s in enumerate(sectors)]]
+    z_matrix = marketshare @ supply_demand
+    data = [
+        ["Matriz Z", *sectors],
+        *[[s, *z_matrix[idx]] for idx, s in enumerate(sectors)],
+    ]
     return data
 
 
 def main():
-    print("Hey oh")
+    book = p.get_book(file_name="tests/Matriz_de_Insumo_Produto_2015_Nivel_67.ods")
+    z_matrix = pd.DataFrame(build_z_matrix(book))
+    z_matrix.to_excel("z_matrix.xlsx", index=False)
 
 
 if __name__ == "__main__":
