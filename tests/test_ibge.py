@@ -53,7 +53,7 @@ def test_build_z_matrix(book):
     z_matrix = ibge.build_z_matrix(book)
 
     assert z_matrix
-    assert len(z_matrix) == 68
+    assert len(z_matrix) == 69
     assert z_matrix[0][0] == "Matriz Z"
     assert z_matrix[0][-1] == "9700 Serviços domésticos"
     assert (

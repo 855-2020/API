@@ -100,6 +100,8 @@ def build_z_matrix(book):
         ["Matriz Z", *sectors],
         *[[s, *z_matrix[idx]] for idx, s in enumerate(sectors)],
     ]
+    imports = get_imports(book)
+    data.append(["Importação", *imports])
     return data
 
 
