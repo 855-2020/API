@@ -11,8 +11,11 @@ class User(Base):
     username = Column(String(64), index=True, nullable=False)
     firstname = Column(String(100), index=True, nullable=False)
     lastname = Column(String(200), index=True, nullable=False)
+    email = Column(String(200), index=True, nullable=False)
     password = Column(String, nullable=False)
     enabled = Column(Boolean, nullable=False, default=True)
+    agreed_terms = Column(Boolean, nullable=False, default=True)
+    institution = Column(String(200), nullable=True)
 
     roles = relationship('Role', lazy='dynamic', secondary=lambda: user_roles)
 

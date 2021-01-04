@@ -15,11 +15,12 @@ class UserBase(BaseModel):
     username: str
     firstname: str
     lastname: str
+    email: str
 
 
 class UserCreate(UserBase):
     """Class for create User methods"""
-
+    institution: str
     password: SecretStr
 
 

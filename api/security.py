@@ -45,8 +45,11 @@ def get_password_hash(password: Union[str, bytes]) -> str:
 
 def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
     db_user = db.query(User).filter_by(username=username).first()
+    
     if not db_user:
-        return None
+        db_user = db.query(User).filter_by(email=username).first()
+        if not db_user:
+          return None
     if not verify_password(password, db_user.password):
         return None
     return db_user
