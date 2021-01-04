@@ -24,6 +24,22 @@ def load_sheet(book, sheet_name):
     return sheet
 
 
+def load_sheet_slice(book, sheet_name, slice_):
+    """
+    Given a loaded Pyexcel book, its sheet name and a valid
+    Numpy slice, returns the data inside that slice as a
+    Numpy Array
+
+    Args:
+        book (`pyexcel.Book`): A loaded `Matriz de Insumo Produto` notebook
+        sheet_name (`str`): The sheet's name
+        slice_ (`tuple`): A valid numpy slice, as returned by `numpy.s_`
+    """
+    data = load_sheet(book, sheet_name)
+    data = np.array(data)
+    return data[slice_].astype("float")
+
+
 def acquire_data(year):
     """
     Given a year, downloads the corresponding data
@@ -39,7 +55,6 @@ def load_sectors(book):
     Given a loaded pyexcel book, returns the sectors
     """
     three = load_sheet(book, "03")
-
     names = three[3]
     return [name.replace("\n", " ") for name in names[3:-9]]
 
@@ -49,10 +64,7 @@ def get_national_supply_demand(book):
     Given a loaded pyexcel book, returns the supply-demand
     indices for the local market
     """
-    three = load_sheet(book, "03")
-
-    data = np.array(three)
-    return data[5:-5, 3:-9].astype("float")
+    return load_sheet_slice(book, "03", np.s_[5:-5, 3:-9])
 
 
 def get_marketshare(book):
@@ -60,9 +72,19 @@ def get_marketshare(book):
     Returns the marketshare matrix on sheet 13.
     This matrix is also called 'matrix D'
     """
-    marketshare = load_sheet(book, "13")
-    marketshare = np.array(marketshare)
-    return marketshare[5:-3, 2:].astype("float")
+    return load_sheet_slice(book, "13", np.s_[5:-3, 2:])
+
+
+def get_imports(book):
+    """
+    Returns the total imports for a given
+    data. This is equal to line 134, tab 04
+    of 'Matriz Insumo Produto'.
+
+    Args:
+        book (`pyexcel.Book`): A loaded `Matriz de Insumo Produto` notebook
+    """
+    return load_sheet_slice(book, "04", np.s_[133, 3:9])
 
 
 def build_z_matrix(book):

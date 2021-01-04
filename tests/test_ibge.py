@@ -60,6 +60,13 @@ def test_build_z_matrix(book):
         z_matrix[1][0]
         == "0191 Agricultura, inclusive o apoio à agricultura e a pós-colheita"
     )
-    assert z_matrix[-1][0] == "9700 Serviços domésticos"
+    assert z_matrix[-2][0] == "9700 Serviços domésticos"
+    assert z_matrix[-1][0] == "Importação"
+    assert int(z_matrix[-1][1]) == 18895
 
     assert int(z_matrix[1][1]) == 6512
+
+
+def test_get_imports(book):
+    imports = ibge.get_imports(book)
+    assert imports[0] == 18895
