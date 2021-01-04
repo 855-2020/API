@@ -77,14 +77,26 @@ def get_marketshare(book):
 
 def get_imports(book):
     """
-    Returns the total imports for a given
-    data. This is equal to line 134, tab 04
-    of 'Matriz Insumo Produto'.
+    Returns the total imports for a given data. This is equal to line
+    134, tab 04 of 'Matriz Insumo Produto'.
 
     Args:
         book (`pyexcel.Book`): A loaded `Matriz de Insumo Produto` notebook
     """
-    return load_sheet_slice(book, "04", np.s_[133, 3:9])
+    return load_sheet_slice(book, "04", np.s_[133, 3:-9])
+
+
+def get_taxes(book):
+    """
+    Returns the total taxes for a given data. This is equal to line
+    134, tab 05 plus L134 of tab 06 of 'Matriz Insumo Produto'.
+
+    Args:
+        book (`pyexcel.Book`): A loaded `Matriz de Insumo Produto` notebook
+    """
+    internal_taxes = load_sheet_slice(book, "05", np.s_[133, 3:-9])
+    import_taxes = load_sheet_slice(book, "06", np.s_[133, 3:-9])
+    return internal_taxes + import_taxes
 
 
 def build_z_matrix(book):

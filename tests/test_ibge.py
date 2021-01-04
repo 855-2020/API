@@ -70,3 +70,10 @@ def test_build_z_matrix(book):
 def test_get_imports(book):
     imports = ibge.get_imports(book)
     assert imports[0] == 18895
+    assert len(imports) == 67
+
+
+def test_get_taxes(book):
+    taxes = ibge.get_taxes(book)
+    assert taxes[0] == 11600
+    assert len(taxes) == 67
