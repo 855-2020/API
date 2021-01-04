@@ -114,6 +114,10 @@ def build_z_matrix(book):
     ]
     imports = get_imports(book)
     data.append(["Importação", *imports])
+
+    taxes = get_taxes(book)
+    data.append(["Impostos indiretos líquidos de Subsídios", *taxes])
+
     return data
 
 
