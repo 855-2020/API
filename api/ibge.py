@@ -24,7 +24,7 @@ def load_sheet(book, sheet_name):
     return sheet
 
 
-def load_sheet_slice(book, sheet_name, slice_):
+def load_sheet_slice(book, sheet_name, slice_, target_type="float"):
     """
     Given a loaded Pyexcel book, its sheet name and a valid
     Numpy slice, returns the data inside that slice as a
@@ -37,7 +37,11 @@ def load_sheet_slice(book, sheet_name, slice_):
     """
     data = load_sheet(book, sheet_name)
     data = np.array(data)
-    return data[slice_].astype("float")
+
+    if target_type:
+        return data[slice_].astype(target_type)
+
+    return data[slice_]
 
 
 def acquire_data(year):
@@ -97,6 +101,11 @@ def get_taxes(book):
     internal_taxes = load_sheet_slice(book, "05", np.s_[133, 3:-9])
     import_taxes = load_sheet_slice(book, "06", np.s_[133, 3:-9])
     return internal_taxes + import_taxes
+
+
+def get_added_value(va_book):
+    operations_titles = load_sheet_slice(va_book, "VA", np.s_[5:-5, 0], target_type=str)
+    return np.array([operations_titles])
 
 
 def build_z_matrix(book):

@@ -12,6 +12,11 @@ def book():
     return p.get_book(file_name="tests/Matriz_de_Insumo_Produto_2015_Nivel_67.ods")
 
 
+@fixture(scope="session")
+def va_book():
+    return p.get_book(file_name="tests/68_tab2_2015.ods")
+
+
 def test_acquire_data():
     assert ibge.acquire_data(year=2015)
 
@@ -82,3 +87,8 @@ def test_get_taxes(book):
     taxes = ibge.get_taxes(book)
     assert taxes[0] == 11600
     assert len(taxes) == 67
+
+
+def test_added_value_loader(va_book):
+    va_data = ibge.get_added_value(va_book)
+    assert "Valor adicionado bruto ( PIB )" in va_data[:, 0]
