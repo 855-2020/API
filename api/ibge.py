@@ -105,7 +105,10 @@ def get_taxes(book):
 
 def get_added_value(va_book):
     operations_titles = load_sheet_slice(va_book, "VA", np.s_[5:-5, 0], target_type=str)
-    return np.array([operations_titles])
+    values = load_sheet_slice(va_book, "VA", np.s_[5:-5, 1:-1])
+    added_value = zip(operations_titles, values)
+    added_value = [[a, *b] for a, b in added_value]
+    return added_value
 
 
 def build_z_matrix(book):
