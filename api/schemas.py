@@ -7,6 +7,23 @@ from typing import List, Optional
 # pylint: disable=no-name-in-module
 import numpy
 from pydantic import BaseModel, SecretStr, validator
+from sqlalchemy.orm import Query
+
+
+class RoleBase(BaseModel):
+    name: str
+    description: Optional[str]
+
+
+class RoleCreate(RoleBase):
+    pass
+
+
+class Role(RoleBase):
+    id: int
+
+    class Config:
+        orm_mode = True
 
 
 class UserBase(BaseModel):
@@ -28,6 +45,11 @@ class User(UserBase):
     """Class User schema"""
 
     id: int
+    roles: List[Role]
+
+    @validator('roles', pre=True)
+    def fetch_dynamic(cls, value):
+        return value.all() if isinstance(value, Query) else value
 
     class Config:
         """Class used to provide configurations to Pydantic"""
