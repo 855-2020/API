@@ -46,22 +46,6 @@ def get_models_filtered_role(db: Session, roles: Query) -> List[models.Model]:
             .all())
 
 
-# Activity
-def get_activity(db: Session, activity_id: int):
-    """Retrieve an activity by id"""
-
-    return db.query(models.Activity).filter_by(id=activity_id).first()
-
-
-def save_activity(db: Session, activity: schemas.Activity):
-    """Save new activity"""
-
-    db_activity = models.Activity(**activity.dict())
-    db.merge(db_activity)
-    db.commit()
-    return db_activity
-
-
 # Sector
 def get_sector(db: Session, sector_id: int):
     """Retrieve an sector by id"""
@@ -76,27 +60,3 @@ def save_sector(db: Session, sector: schemas.Sector):
     db.merge(db_sector)
     db.commit()
     return db_sector
-
-
-# Activity Coefficient
-def get_coefficient_activities_by_sector(db: Session, sector_id: int):
-    """List of all CoefficientActivities by sector id"""
-
-    return (db.query(models.ActivityCoefficient)
-            .filter(models.ActivityCoefficient.sector_id == sector_id)
-            .all())
-
-
-def get_coefficient_activity(db: Session, coefficient_id: int):
-    """Retrieve an CoefficientActivity by id"""
-
-    return db.query(models.ActivityCoefficient).filter_by(id=coefficient_id).first()
-
-
-def save_coefficientactivity(db: Session, coefficient_activities: schemas.ActivityCoefficient):
-    """Save new CoefficientActivity"""
-
-    db_cefficient_activities = models.ActivityCoefficient(**coefficient_activities.dict())
-    db.merge(db_cefficient_activities)
-    db.commit()
-    return db_cefficient_activities
