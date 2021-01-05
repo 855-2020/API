@@ -14,7 +14,7 @@ class User(Base):
     email = Column(String(200), index=True, nullable=False)
     password = Column(String, nullable=False)
     enabled = Column(Boolean, nullable=False, default=True)
-    agreed_terms = Column(Boolean, nullable=False, default=True)
+    agreed_terms = Column(Boolean, nullable=False, default=False)
     institution = Column(String(200), nullable=True)
 
     roles = relationship('Role', lazy='dynamic', secondary=lambda: user_roles)
@@ -61,7 +61,8 @@ class Sector(Base):
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     name = Column(String(100), index=True, nullable=False)
-    model_id = Column(Integer, ForeignKey(Model.id))
+    model_id = Column(Integer, ForeignKey(Model.id), nullable=False)
+    pos = Column(Integer, nullable=False)
     value_added = Column(Float, nullable=False)
 
 

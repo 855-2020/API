@@ -67,13 +67,13 @@ class SectorBase(BaseModel):
 
 class SectorCreate(SectorBase):
     """Class for create Sector methods"""
+    model_id: int
 
 
 class Sector(SectorBase):
     """Class Sector schema"""
 
     id: int
-    model_id: int
 
     class Config:
         """Class used to provide configurations to Pydantic"""
