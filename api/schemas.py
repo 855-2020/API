@@ -6,7 +6,7 @@ from typing import List, Optional
 
 # pylint: disable=no-name-in-module
 import numpy
-from pydantic import BaseModel, SecretStr, validator
+from pydantic import BaseModel, EmailStr, SecretStr, validator
 from sqlalchemy.orm import Query
 
 
@@ -32,13 +32,14 @@ class UserBase(BaseModel):
     username: str
     firstname: str
     lastname: str
-    email: str
+    email: EmailStr
 
 
 class UserCreate(UserBase):
     """Class for create User methods"""
-    institution: str
+    institution: Optional[str]
     password: SecretStr
+    agreed_terms: bool
 
 
 class User(UserBase):
@@ -55,6 +56,11 @@ class User(UserBase):
         """Class used to provide configurations to Pydantic"""
 
         orm_mode = True
+
+
+class UserPassword(BaseModel):
+    current_password: SecretStr
+    new_password: SecretStr
 
 
 # Sector
