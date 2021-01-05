@@ -2,12 +2,14 @@
 Utilitary methods to setup an SQLAlchemy session
 """
 import pickle
-
 import numpy
+
+from sqlalchemy.engine import Engine
 from sqlalchemy.engine.interfaces import Dialect
-from sqlalchemy import create_engine, types
+from sqlalchemy import create_engine, types, event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlite3 import Cursor, Connection
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 
@@ -17,6 +19,13 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(conn: Connection, _connection_record):
+    cursor: Cursor = conn.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 
 class NumpyColumnType(types.TypeDecorator):
@@ -30,3 +39,7 @@ class NumpyColumnType(types.TypeDecorator):
 
     def process_literal_param(self, value, dialect):
         raise NotImplementedError()
+
+    @property
+    def python_type(self):
+        return numpy.ndarray
