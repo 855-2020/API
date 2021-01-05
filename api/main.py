@@ -12,8 +12,7 @@ from sqlalchemy.orm import Session
 from . import models
 from .database import Base, engine
 from .deps import get_db
-from .routers import user, sector, model
-from .schemas import Activity
+from .routers import user, sector, model, role
 from .security import JwtToken, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
 
 Base.metadata.create_all(bind=engine)
@@ -48,6 +47,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 app.include_router(user.router, prefix='/users')
 app.include_router(sector.router, prefix='/sectors')
 app.include_router(model.router, prefix='/models')
+app.include_router(role.router, prefix='/roles')
 
 
 if __name__ == "__main__":

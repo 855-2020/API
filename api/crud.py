@@ -60,3 +60,22 @@ def save_sector(db: Session, sector: schemas.Sector):
     db.merge(db_sector)
     db.commit()
     return db_sector
+
+
+def create_role(db: Session, role: schemas.RoleCreate):
+    db_role = models.Role(**role.dict())
+    db.add(db_role)
+    db.commit()
+    return db_role
+
+
+def try_delete_role(db: Session, role_id: int, force: bool = False) -> bool:
+    model_roles_query: Query = db.query(models.model_roles).filter_by(role_id=role_id)
+    user_roles_query: Query = db.query(models.user_roles).filter_by(role_id=role_id)
+    in_use: Query = db.query(literal(True)).filter(model_roles_query.union(user_roles_query).exists())
+    if in_use.scalar() and not force:
+        return False
+    db_role = db.query(models.Role).filter_by(id=role_id).scalar()
+    db.delete(db_role)
+    db.commit()
+    return True
