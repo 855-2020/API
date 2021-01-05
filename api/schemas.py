@@ -2,7 +2,7 @@
 Pydantic schemas
 """
 
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 # pylint: disable=no-name-in-module
 import numpy
@@ -116,6 +116,10 @@ class Model(ModelBase):
         orm_mode = True
 
 
+class ModelInput(BaseModel):
+    values: Dict[int, float]
+
+
 # Activity
 class ActivityBase(BaseModel):
     """Class base for Activity schema"""
@@ -132,54 +136,6 @@ class Activity(ActivityBase):
     """Class Activity schema"""
 
     id: int
-
-    class Config:
-        """Class used to provide configurations to Pydantic"""
-
-        orm_mode = True
-
-
-# Economic Coefficient
-class EconomicCoefficientBase(BaseModel):
-    """Class base for Economic Coefficient schema"""
-
-    value: str
-
-
-class EconomicCoefficientCreate(EconomicCoefficientBase):
-    """Class for create Economic Coefficient methods"""
-
-
-class EconomicCoefficient(EconomicCoefficientBase):
-    """Class Economic Coefficient schema"""
-
-    id: int
-    source_id: int
-    target_id: int
-
-    class Config:
-        """Class used to provide configurations to Pydantic"""
-
-        orm_mode = True
-
-
-# Leontief Coefficient
-class LeontiefCoefficientBase(BaseModel):
-    """Class base for Leontief Coefficient schema"""
-
-    value: str
-
-
-class LeontiefCoefficientCreate(LeontiefCoefficientBase):
-    """Class for create Leontief Coefficient methods"""
-
-
-class LeontiefCoefficient(LeontiefCoefficientBase):
-    """Class Leontief Coefficient schema"""
-
-    id: int
-    source_id: int
-    target_id: int
 
     class Config:
         """Class used to provide configurations to Pydantic"""
