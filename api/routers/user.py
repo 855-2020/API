@@ -54,7 +54,6 @@ def read_self(user_id: int, password: UserPassword, db: Session = Depends(get_db
 
 
 @router.get('/list', response_model=List[User],
-            response_model_include={'id', 'firstname', 'lastname'},
             dependencies=[Depends(get_admin_user)])
 def list_all_users(db: Session = Depends(get_db)):
     return db.query(models.User).all()
