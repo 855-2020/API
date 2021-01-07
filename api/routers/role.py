@@ -37,6 +37,15 @@ def list_all_users(role: RoleCreate, db: Session = Depends(get_db)):
     return crud.create_role(db, role)
 
 
+@router.post('/{role_id}/description', dependencies=[Depends(get_admin_user)])
+def set_description(role_id: int, description: str, db: Session = Depends(get_db)):
+    db_role: models.Role = db.query(models.Role).filter_by(id=role_id).scalar()
+    if db_role is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    db_role.description = description
+    db.commit()
+
+
 @router.delete('/{role_id}', response_model=int, dependencies=[Depends(get_admin_user)])
 def list_all_users(role_id: int, force: bool = False, db: Session = Depends(get_db)):
     if not crud.try_delete_role(db, role_id, force):
