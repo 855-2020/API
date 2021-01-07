@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from .. import crud, models
 from ..deps import get_db
 from ..schemas import Model, ModelInput
-from ..security import get_current_user_optional
+from ..security import get_current_user_optional, get_admin_user
 
 router = APIRouter()
 
@@ -47,3 +47,25 @@ def list_sectors(model_id: int, values: ModelInput,
     y: ndarray = L @ x
     details: ndarray = y @ impct
     return numpy.concatenate((y, details), axis=1).tolist() # TODO model
+
+
+@router.post('/{model_id}/add_roles', dependencies=[Depends(get_admin_user)])
+def add_model_roles(model_id: int, role_ids: List[int], db: Session = Depends(get_db)):
+    db_model: models.Model = db.query(models.Model).filter_by(id=model_id).scalar()
+    if db_model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    new_roles: list[models.Role] = db.query(models.Role).filter(models.Role.id.in_(role_ids)).all()
+    db_model.roles.extend(new_roles)
+    db.commit()
+
+
+@router.post('/{model_id}/remove_roles', dependencies=[Depends(get_admin_user)])
+def remove_model_roles(model_id: int, role_ids: List[int], db: Session = Depends(get_db)):
+    db_model: models.Model = db.query(models.Model).filter_by(id=model_id).scalar()
+    if db_model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    stmt = (models.model_roles.delete()
+            .where(models.model_roles.c.model_id == model_id)
+            .where(models.model_roles.c.role_id.in_(role_ids)))
+    db.execute(stmt)
+    db.commit()
