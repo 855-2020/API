@@ -19,7 +19,8 @@ requests = "^2.25.0"
 pyexcel = "^0.6.6"
 pyexcel-ods3 = "^0.6.0"
 pytest-xdist = "^2.2.0"
-numpy = "^1.19.4"
+numpy = "^1.19.0"
+cachetools = "^4.2.0"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^20.0", allow-prereleases = true}
