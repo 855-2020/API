@@ -96,6 +96,12 @@ class ModelBase(BaseModel):
     economic_matrix: List[List[float]]
     leontief_matrix: List[List[float]]
 
+    roles: List[Role]
+
+    @validator('roles', pre=True)
+    def fetch_dynamic(cls, value):
+        return value.all() if isinstance(value, Query) else value
+
     @validator('economic_matrix', 'leontief_matrix', pre=True)
     def convert_numpy(cls, value):
         return value.tolist() if isinstance(value, numpy.ndarray) else value
