@@ -46,7 +46,7 @@ def read_self(password: UserPassword, db: Session = Depends(get_db),
 
 @router.post('/{user_id}/update_password', dependencies=[Depends(get_admin_user)])
 def read_self(user_id: int, password: UserPassword, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter_by(id = user_id).scalar()
+    db_user = db.query(models.User).filter_by(id=user_id).scalar()
     if db_user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     db_user.password = get_password_hash(password.new_password.get_secret_value())
@@ -74,4 +74,26 @@ def list_all_users(user: User, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     for attr in ["firstname", "lastname", "email", "institution"]:
         setattr(db_user, attr, getattr(user, attr))
+    db.commit()
+
+
+@router.post('/{user_id}/add_roles', dependencies=[Depends(get_admin_user)])
+def add_user_roles(user_id: int, role_ids: List[int], db: Session = Depends(get_db)):
+    db_user: models.User = db.query(models.User).filter_by(id=user_id).scalar()
+    if db_user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    new_roles: list[models.Role] = db.query(models.Role).filter(models.Role.id.in_(role_ids)).all()
+    db_user.roles.extend(new_roles)
+    db.commit()
+
+
+@router.post('/{user_id}/remove_roles', dependencies=[Depends(get_admin_user)])
+def remove_user_roles(user_id: int, role_ids: List[int], db: Session = Depends(get_db)):
+    db_user: models.User = db.query(models.User).filter_by(id=user_id).scalar()
+    if db_user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    stmt = (models.user_roles.delete()
+            .where(models.user_roles.c.user_id == user_id)
+            .where(models.user_roles.c.role_id.in_(role_ids)))
+    db.execute(stmt)
     db.commit()
