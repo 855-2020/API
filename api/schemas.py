@@ -46,6 +46,7 @@ class User(UserBase):
     """Class User schema"""
 
     id: int
+    institution: Optional[str]
     roles: List[Role]
 
     @validator('roles', pre=True)

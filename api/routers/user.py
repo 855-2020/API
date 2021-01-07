@@ -72,6 +72,6 @@ def list_all_users(user: User, db: Session = Depends(get_db)):
     db_user: models.User = db.query(models.User).filter_by(id=user.id).first()
     if db_user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    for attr in ["firstname", "lastname", "email"]:
+    for attr in ["firstname", "lastname", "email", "institution"]:
         setattr(db_user, attr, getattr(user, attr))
     db.commit()
