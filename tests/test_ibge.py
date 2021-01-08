@@ -91,6 +91,7 @@ def test_get_taxes(book):
 
 def test_added_value_loader(va_book):
     va_data = ibge.get_added_value(va_book)
+    assert len(va_data[0]) == 68
     assert va_data[0][0] == "Valor adicionado bruto ( PIB )"
     assert va_data[0][1] == 163127
     assert va_data[0][-1] == 61996
