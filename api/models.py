@@ -47,6 +47,7 @@ class Model(Base):
     leontief_matrix = Column(NumpyColumnType, nullable=False)
 
     sectors = relationship("Sector", backref="model")
+    categories = relationship("Category", backref="model")
     roles = relationship('Role', lazy='dynamic', secondary=lambda: model_roles)
 
 
@@ -66,25 +67,12 @@ class Sector(Base):
     value_added = Column(Float, nullable=False)
 
 
-class Activity(Base):
-    __tablename__ = "activities"
+class Category(Base):
+    __tablename__ = "categories"
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
-    name = Column(String(10))
-    desc = Column(String(100))
-
-
-class ActivityCoefficient(Base):
-    __tablename__ = "coefs_activity"
-
-    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
-    sector_id = Column(
-        Integer, ForeignKey("sectors.id"), nullable=False, index=True
-    )
-    activity_id = Column(
-        Integer, ForeignKey("activities.id"), nullable=False, index=True
-    )
-    value = Column(Float, nullable=False)
-
-    sector = relationship("Sector")
-    activity = relationship("Activity")
+    name = Column(String(100), index=True, nullable=False)
+    model_id = Column(Integer, ForeignKey(Model.id), nullable=False)
+    pos = Column(Integer, nullable=False)
+    description = Column(String, nullable=False)
+    coefficient = Column(Float, nullable=False)

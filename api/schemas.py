@@ -123,52 +123,32 @@ class Model(ModelBase):
         orm_mode = True
 
 
-class ModelInput(BaseModel):
+class CategoryBase(BaseModel):
+    name: str
+    pos: int
+    description: str
+    coefficient: float
+
+
+class CategoryCreate(CategoryBase):
+    model_id: int
+
+
+class Category(CategoryBase):
+    id: int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
+
+
+class SimInput(BaseModel):
     values: Dict[int, float]
 
 
-# Activity
-class ActivityBase(BaseModel):
-    """Class base for Activity schema"""
+class SimOutput(BaseModel):
+    categories: List[Category]
+    result: List[float]
+    detailed: List[List[float]]
 
-    name: str
-    desc: str
-
-
-class ActivityCreate(ActivityBase):
-    """Class for create Activity methods"""
-
-
-class Activity(ActivityBase):
-    """Class Activity schema"""
-
-    id: int
-
-    class Config:
-        """Class used to provide configurations to Pydantic"""
-
-        orm_mode = True
-
-
-# Activity Coefficient
-class ActivityCoefficientBase(BaseModel):
-    """Class base for Coefficient_Activity schema"""
-
-    value: float
-
-
-class ActivityCoefficientCreate(ActivityCoefficientBase):
-    """Class for create CoefficientActivityCreate methods"""
-
-
-class ActivityCoefficient(ActivityCoefficientBase):
-    """Class CoefficientActivity schema"""
-
-    id: int
-    sector_id: int
-    activity_id: int
-
-    class Config:
-        """Class used to provide configurations to Pydantic"""
-
-        orm_mode = True

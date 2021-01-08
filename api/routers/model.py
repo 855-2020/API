@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 
 from .. import crud, models
 from ..deps import get_db
-from ..schemas import Model, ModelInput
-from ..security import get_current_user_optional, get_admin_user
+from ..schemas import Model, SimInput, SimOutput
+from ..security import get_current_user_optional, get_admin_user, get_current_user
 
 router = APIRouter()
 
@@ -31,10 +31,16 @@ def list_sectors(model_id: int, db: Session = Depends(get_db),
     return model
 
 
-@router.post('/{model_id}/simulate', response_model=List[List[float]])
-def list_sectors(model_id: int, values: ModelInput,
+@router.post('/{model_id}/simulate', response_model=SimOutput)
+def list_sectors(model_id: int, values: SimInput,
                  db: Session = Depends(get_db), db_user: Optional[models.User] = Depends(get_current_user_optional)):
-    model = crud.get_model(db, model_id, db_user.roles if db_user is not None else crud.query_guest_role(db))
+    if db_user is None:
+        role_ids = crud.query_guest_role(db)
+    else:
+        # noinspection PyUnresolvedReferences
+        role_ids = db.query(models.Role.id).select_entity_from(db_user.roles.subquery())
+    model = crud.get_model(db, model_id, role_ids)
+
     if model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     L: ndarray = model.leontief_matrix
@@ -43,10 +49,16 @@ def list_sectors(model_id: int, values: ModelInput,
         if idx > x.size:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
         x[idx, 0] = val
-    impct = numpy.array([[0.2, 0.5, 0.4]])  # TODO
+    # noinspection PyTypeChecker
+    categories_sorted = sorted(model.categories, key=lambda c: c.pos)
+    impact = numpy.array([list(map(lambda c: c.coefficient, categories_sorted))])
     y: ndarray = L @ x
-    details: ndarray = y @ impct
-    return numpy.concatenate((y, details), axis=1).tolist() # TODO model
+    details: ndarray = y @ impact
+    return {
+        "categories": categories_sorted,
+        "result": numpy.squeeze(y).tolist(),
+        "detailed": details.tolist()
+    }
 
 
 @router.post('/{model_id}/add_roles', dependencies=[Depends(get_admin_user)])
