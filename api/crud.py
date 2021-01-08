@@ -30,20 +30,22 @@ def is_user_admin(db: Session, db_user: models.User) -> bool:
 
 
 # Model
-def get_model(db: Session, model_id: int, roles: Query) -> Optional[models.Model]:
+def get_model(db: Session, model_id: int, roles: Optional[Query], admin: bool = False) -> Optional[models.Model]:
     """Retrieve an model by id"""
 
-    return (db.query(models.Model).filter_by(id=model_id).join(models.Model.roles)
-            .filter(models.Role.id.in_(roles.subquery())).scalar())
+    query: Query = db.query(models.Model).filter_by(id=model_id).join(models.Model.roles)
+    if not admin:
+        query = query.filter(models.Role.id.in_(roles.subquery()))
+    return query.scalar()
 
 
-def get_models_filtered_role(db: Session, roles: Query) -> List[models.Model]:
+def get_models_filtered_role(db: Session, roles: Optional[Query], admin: bool = False) -> List[models.Model]:
     """Retrieve models filtered by roles"""
 
-    return (db.query(models.Model)
-            .join(models.Model.roles)
-            .filter(models.Role.id.in_(roles.subquery()))
-            .all())
+    query: Query = db.query(models.Model).join(models.Model.roles)
+    if not admin:
+        query = query.filter(models.Role.id.in_(roles.subquery()))
+    return query.all()
 
 
 # Sector

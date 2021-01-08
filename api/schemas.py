@@ -88,12 +88,31 @@ class Sector(SectorBase):
         orm_mode = True
 
 
+class CategoryBase(BaseModel):
+    name: str
+    pos: int
+    description: str
+    coefficient: float
+
+
+class CategoryCreate(CategoryBase):
+    model_id: int
+
+
+class Category(CategoryBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
 class ModelBase(BaseModel):
     """Class base for Model"""
 
     name: str
     description: Optional[str]
     sectors: List[Sector]
+    categories: List[Category]
     economic_matrix: List[List[float]]
     leontief_matrix: List[List[float]]
 
@@ -123,26 +142,6 @@ class Model(ModelBase):
         orm_mode = True
 
 
-class CategoryBase(BaseModel):
-    name: str
-    pos: int
-    description: str
-    coefficient: float
-
-
-class CategoryCreate(CategoryBase):
-    model_id: int
-
-
-class Category(CategoryBase):
-    id: int
-
-    class Config:
-        """Class used to provide configurations to Pydantic"""
-
-        orm_mode = True
-
-
 class SimInput(BaseModel):
     values: Dict[int, float]
 
@@ -151,4 +150,3 @@ class SimOutput(BaseModel):
     categories: List[Category]
     result: List[float]
     detailed: List[List[float]]
-

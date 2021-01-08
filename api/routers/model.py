@@ -17,6 +17,8 @@ router = APIRouter()
 @router.get('/list', response_model=List[Model],
             response_model_exclude={'economic_matrix', 'leontief_matrix', 'sectors'})
 def list_sectors(db: Session = Depends(get_db), db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    if db_user is not None and crud.is_user_admin(db, db_user):
+        return crud.get_models_filtered_role(db, None, True)
     current_roles = crud.query_user_role_list(db, db_user.id) if db_user is not None else crud.query_guest_role(db)
     return crud.get_models_filtered_role(db, current_roles)
 
@@ -24,6 +26,8 @@ def list_sectors(db: Session = Depends(get_db), db_user: Optional[models.User] =
 @router.get('/{model_id}/get', response_model=Model)
 def list_sectors(model_id: int, db: Session = Depends(get_db),
                  db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    if db_user is not None and crud.is_user_admin(db, db_user):
+        return crud.get_model(db, model_id, None, True)
     current_roles = crud.query_user_role_list(db, db_user.id) if db_user is not None else crud.query_guest_role(db)
     model = crud.get_model(db, model_id, current_roles)
     if model is None:
@@ -35,11 +39,12 @@ def list_sectors(model_id: int, db: Session = Depends(get_db),
 def list_sectors(model_id: int, values: SimInput,
                  db: Session = Depends(get_db), db_user: Optional[models.User] = Depends(get_current_user_optional)):
     if db_user is None:
-        role_ids = crud.query_guest_role(db)
+        model = crud.get_model(db, model_id, crud.query_guest_role(db))
+    elif crud.is_user_admin(db, db_user):
+        model = crud.get_model(db, model_id, None, True)
     else:
         # noinspection PyUnresolvedReferences
-        role_ids = db.query(models.Role.id).select_entity_from(db_user.roles.subquery())
-    model = crud.get_model(db, model_id, role_ids)
+        model = crud.get_model(db, model_id, db.query(models.Role.id).select_entity_from(db_user.roles.subquery()))
 
     if model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
