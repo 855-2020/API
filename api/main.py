@@ -2,7 +2,7 @@
 Main API module
 """
 from datetime import timedelta
-from typing import Dict
+from typing import Dict, List
 
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, status
@@ -12,8 +12,7 @@ from sqlalchemy.orm import Session
 from . import models
 from .database import Base, engine
 from .deps import get_db
-from .routers import users
-from .schemas import Activity
+from .routers import user, model, role
 from .security import JwtToken, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
 
 Base.metadata.create_all(bind=engine)
@@ -45,37 +44,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.post("/activity")
-def create_activity(activity: Activity):
-    print(activity)
-
-    return "Activity created!"
-
-
-# TODO proper model
-@app.post("/impact", response_model=Dict[int, float])
-def get_impact(values: Dict[int, float], db: Session = Depends((get_db))):
-    coefs = db.query(models.LeontiefCoefficient).filter(
-        models.LeontiefCoefficient.source_id.in_(values.keys())
-    ).all()
-    response: Dict[int, float] = dict()
-    for coef in coefs:
-        if coef.target_id not in response:
-            response[coef.target_id] = 0
-        response[coef.target_id] += coef.value * values[coef.source_id]
-    return response
-
-
-@app.post("/activity/{sector_id}/{sector_value}", response_model=Activity)
-def get_results(sector_id: int, sector_value: float, db: Session = Depends(get_db)):
-    coefs = db.query(models.ActivityCoefficient).filter(
-        models.ActivityCoefficient.sector_id == sector_id
-    ).all()
-    props = {coef.activity.name: sector_value * coef.value for coef in coefs}
-    return Activity(**props)
-
-
-app.include_router(users.router, prefix='/users')
+app.include_router(user.router, prefix='/users')
+app.include_router(model.router, prefix='/models')
+app.include_router(role.router, prefix='/roles')
 
 
 if __name__ == "__main__":

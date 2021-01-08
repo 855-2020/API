@@ -9,8 +9,10 @@ bind to your port 8000 and offer a browsable API schema at
 ### With Docker
 
 0. Build the image with `docker build . -t api`
-1. Run with `docker run -p 8000:8000 api:latest`
-2. The server will be available at [localhost:8000](http://localhost:8000)
+1. Run with `docker run -d -p 80:80 -v $(pwd):/app -e MODULE_NAME="api.main" api /start-reload.sh` (with Live reload for testing) or
+Run with gnicorn `docker run -d -p 80:80 -v $(pwd):/app -e MODULE_NAME="api.main" api`
+2. The server will be available at [0.0.0.0:80](http://0.0.0.0:80)
+4. More infos in (https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker)
 
 ### With Poetry
 

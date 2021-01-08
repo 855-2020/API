@@ -1,75 +1,174 @@
 """
 Pydantic schemas
 """
-from typing import Dict, List
+
+from typing import List, Optional, Dict
 
 # pylint: disable=no-name-in-module
-from pydantic import BaseModel
+import numpy
+from pydantic import BaseModel, EmailStr, SecretStr, validator
+from sqlalchemy.orm import Query
 
 
-class UserBase(BaseModel):
-    username: str
-    firstname: str
-    lastname: str
+class RoleBase(BaseModel):
+    name: str
+    description: Optional[str]
 
 
-class UserCreate(UserBase):
-    password: str
+class RoleCreate(RoleBase):
+    pass
 
 
-class User(UserBase):
+class Role(RoleBase):
     id: int
 
     class Config:
         orm_mode = True
 
 
-class Activity(BaseModel):
-    """
-    Activity models an economic activity
+class UserBase(BaseModel):
+    """Class base for User"""
 
-    Attributes
-    ----------
-
-    gdp : float
-          The percentage of the Gross Domestic Product this
-          activity is responsible for
-
-    jobs : float
-           Average number of jobs employed by this activity
-
-    energy : float
-             Amount of energy used, in Terajoules
-
-    co2eq : float
-            Amount of CO2Equivalent this activity generates
-
-    land_usage : float
-                 Area of land used by this activity, in 1000ha
-
-    blue_water : float
-                 Volume of blue water used by this activity, in 1000m³
-
-    green_water : float
-                 Volume of green water used by this activity, in 1000m³
-
-    gray_water : float
-                 Volume of gray water used by this activity, in 1000m³
-    """
-
-    gdp: float = 0
-    jobs: float = 0
-    energy: float = 0
-    co2eq: float = 0
-    land_usage: float = 0
-    blue_water: float = 0
-    green_water: float = 0
-    gray_water: float = 0
+    username: str
+    firstname: str
+    lastname: str
+    email: EmailStr
 
 
-class Sector(BaseModel):
+class UserCreate(UserBase):
+    """Class for create User methods"""
+    institution: Optional[str]
+    password: SecretStr
+    agreed_terms: bool
+
+
+class User(UserBase):
+    """Class User schema"""
+
+    id: int
+    institution: Optional[str]
+    roles: List[Role]
+
+    @validator('roles', pre=True)
+    def fetch_dynamic(cls, value):
+        return value.all() if isinstance(value, Query) else value
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
+
+
+class UserPassword(BaseModel):
+    current_password: SecretStr
+    new_password: SecretStr
+
+
+# Sector
+class SectorBase(BaseModel):
+    """Class base for Sector schema"""
+
     name: str
+    value_added: float
 
 
-class Result(BaseModel):
-    mapping: Dict[Sector, float]
+class SectorCreate(SectorBase):
+    """Class for create Sector methods"""
+    model_id: int
+
+
+class Sector(SectorBase):
+    """Class Sector schema"""
+
+    id: int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
+
+
+class ModelBase(BaseModel):
+    """Class base for Model"""
+
+    name: str
+    description: Optional[str]
+    sectors: List[Sector]
+    economic_matrix: List[List[float]]
+    leontief_matrix: List[List[float]]
+
+    roles: List[Role]
+
+    @validator('roles', pre=True)
+    def fetch_dynamic(cls, value):
+        return value.all() if isinstance(value, Query) else value
+
+    @validator('economic_matrix', 'leontief_matrix', pre=True)
+    def convert_numpy(cls, value):
+        return value.tolist() if isinstance(value, numpy.ndarray) else value
+
+
+class ModelCreate(ModelBase):
+    """Class for create Model methods"""
+
+
+class Model(ModelBase):
+    """Class Model schema"""
+
+    id: int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
+
+
+class ModelInput(BaseModel):
+    values: Dict[int, float]
+
+
+# Activity
+class ActivityBase(BaseModel):
+    """Class base for Activity schema"""
+
+    name: str
+    desc: str
+
+
+class ActivityCreate(ActivityBase):
+    """Class for create Activity methods"""
+
+
+class Activity(ActivityBase):
+    """Class Activity schema"""
+
+    id: int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
+
+
+# Activity Coefficient
+class ActivityCoefficientBase(BaseModel):
+    """Class base for Coefficient_Activity schema"""
+
+    value: float
+
+
+class ActivityCoefficientCreate(ActivityCoefficientBase):
+    """Class for create CoefficientActivityCreate methods"""
+
+
+class ActivityCoefficient(ActivityCoefficientBase):
+    """Class CoefficientActivity schema"""
+
+    id: int
+    sector_id: int
+    activity_id: int
+
+    class Config:
+        """Class used to provide configurations to Pydantic"""
+
+        orm_mode = True
