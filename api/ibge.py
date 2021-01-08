@@ -144,6 +144,21 @@ def build_z_matrix(book, va_book):
     return data
 
 
+def build_a_matrix(book, va_book):
+    """
+    Builds the A Matrix for a given year
+    """
+    z_matrix = build_z_matrix(book, va_book)
+    df_z = pd.DataFrame(z_matrix)
+    df_z.columns = df_z.iloc[0]
+    df_z.drop(index=0, inplace=True)
+    df_z.set_index("Matriz Z", inplace=True)
+    df_z = df_z.astype("float")
+    df_a = df_z / df_z.iloc[-2]
+
+    return df_a
+
+
 def main():
     book = p.get_book(file_name="tests/Matriz_de_Insumo_Produto_2015_Nivel_67.ods")
     va_book = p.get_book(file_name="tests/68_tab2_2015.ods")
