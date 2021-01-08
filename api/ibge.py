@@ -119,7 +119,7 @@ def get_added_value(va_book):
     return added_value
 
 
-def build_z_matrix(book):
+def build_z_matrix(book, va_book):
     """
     Builds the Z Matrix for a given year
     """
@@ -138,12 +138,16 @@ def build_z_matrix(book):
     taxes = get_taxes(book)
     data.append(["Impostos indiretos líquidos de Subsídios", *taxes])
 
+    added_value = get_added_value(va_book)
+    data.extend(added_value)
+
     return data
 
 
 def main():
     book = p.get_book(file_name="tests/Matriz_de_Insumo_Produto_2015_Nivel_67.ods")
-    z_matrix = pd.DataFrame(build_z_matrix(book))
+    va_book = p.get_book(file_name="tests/68_tab2_2015.ods")
+    z_matrix = pd.DataFrame(build_z_matrix(book, va_book))
     z_matrix.to_excel("z_matrix.xlsx", index=False)
 
 

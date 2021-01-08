@@ -54,11 +54,11 @@ def test_get_marketshare(book):
     assert market_share[-1, -1] == 1
 
 
-def test_build_z_matrix(book):
-    z_matrix = ibge.build_z_matrix(book)
+def test_build_z_matrix(book, va_book):
+    z_matrix = ibge.build_z_matrix(book, va_book)
 
     assert z_matrix
-    assert len(z_matrix) == 70
+    assert len(z_matrix) == 84
     assert z_matrix[0][0] == "Matriz Z"
     assert z_matrix[0][-1] == "9700 Serviços domésticos"
     assert (
@@ -67,14 +67,17 @@ def test_build_z_matrix(book):
     )
     assert int(z_matrix[1][1]) == 6512
 
-    assert z_matrix[-3][0] == "9700 Serviços domésticos"
-    assert z_matrix[-3][1] == 0
+    assert z_matrix[-17][0] == "9700 Serviços domésticos"
+    assert z_matrix[-17][1] == 0
 
-    assert z_matrix[-2][0] == "Importação"
-    assert int(z_matrix[-2][1]) == 18895
+    assert z_matrix[-16][0] == "Importação"
+    assert int(z_matrix[-16][1]) == 18895
 
-    assert z_matrix[-1][0] == "Impostos indiretos líquidos de Subsídios"
-    assert z_matrix[-1][1] == 11600
+    assert z_matrix[-15][0] == "Impostos indiretos líquidos de Subsídios"
+    assert z_matrix[-15][1] == 11600
+
+    assert z_matrix[-1][0] == "Fator trabalho (ocupações)"
+    assert z_matrix[-1][1] == 5972110
 
 
 def test_get_imports(book):
