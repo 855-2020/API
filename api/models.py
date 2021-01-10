@@ -76,3 +76,4 @@ class Category(Base):
     pos = Column(Integer, nullable=False)
     description = Column(String, nullable=False)
     coefficient = Column(Float, nullable=False)
+    unit = Column(String, nullable=False)
