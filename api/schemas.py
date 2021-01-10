@@ -93,6 +93,7 @@ class CategoryBase(BaseModel):
     pos: int
     description: str
     coefficient: float
+    unit: str
 
 
 class CategoryCreate(CategoryBase):
