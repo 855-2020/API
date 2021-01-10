@@ -2,6 +2,7 @@
 Adquire dados do IBGE
 """
 from functools import lru_cache
+
 import numpy as np
 import pandas as pd
 import pyexcel as p
@@ -24,7 +25,7 @@ def load_sheet(book, sheet_name):
     return sheet
 
 
-def load_sheet_slice(book, sheet_name, slice_, target_type="float"):
+def load_sheet_slice(book, sheet_name, slice_, target_type=float) -> np.ndarray:
     """
     Given a loaded Pyexcel book, its sheet name and a valid
     Numpy slice, returns the data inside that slice as a
@@ -34,6 +35,7 @@ def load_sheet_slice(book, sheet_name, slice_, target_type="float"):
         book (`pyexcel.Book`): A loaded `Matriz de Insumo Produto` notebook
         sheet_name (`str`): The sheet's name
         slice_ (`tuple`): A valid numpy slice, as returned by `numpy.s_`
+        target_type (`type`):
     """
     data = load_sheet(book, sheet_name)
     data = np.array(data)

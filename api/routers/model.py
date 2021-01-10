@@ -15,8 +15,8 @@ router = APIRouter()
 
 
 @router.get('/list', response_model=List[Model],
-            response_model_exclude={'economic_matrix', 'leontief_matrix', 'sectors'})
-def list_sectors(db: Session = Depends(get_db), db_user: Optional[models.User] = Depends(get_current_user_optional)):
+            response_model_exclude={'economic_matrix', 'leontief_matrix', 'catimpct_matrix', 'sectors'})
+def model_list(db: Session = Depends(get_db), db_user: Optional[models.User] = Depends(get_current_user_optional)):
     if db_user is not None and crud.is_user_admin(db, db_user):
         return crud.get_models_filtered_role(db, None, True)
     current_roles = crud.query_user_role_list(db, db_user.id) if db_user is not None else crud.query_guest_role(db)
@@ -24,7 +24,7 @@ def list_sectors(db: Session = Depends(get_db), db_user: Optional[models.User] =
 
 
 @router.get('/{model_id}/get', response_model=Model)
-def list_sectors(model_id: int, db: Session = Depends(get_db),
+def detail_model(model_id: int, db: Session = Depends(get_db),
                  db_user: Optional[models.User] = Depends(get_current_user_optional)):
     if db_user is not None and crud.is_user_admin(db, db_user):
         return crud.get_model(db, model_id, None, True)
@@ -36,7 +36,7 @@ def list_sectors(model_id: int, db: Session = Depends(get_db),
 
 
 @router.post('/{model_id}/simulate', response_model=SimOutput)
-def list_sectors(model_id: int, values: SimInput,
+def model_sim(model_id: int, values: SimInput,
                  db: Session = Depends(get_db), db_user: Optional[models.User] = Depends(get_current_user_optional)):
     if db_user is None:
         model = crud.get_model(db, model_id, crud.query_guest_role(db))
@@ -56,9 +56,8 @@ def list_sectors(model_id: int, values: SimInput,
         x[idx, 0] = val
     # noinspection PyTypeChecker
     categories_sorted = sorted(model.categories, key=lambda c: c.pos)
-    impact = numpy.array([list(map(lambda c: c.coefficient, categories_sorted))])
     y: ndarray = L @ x
-    details: ndarray = y @ impact
+    details: ndarray = y * model.catimpct_matrix.T
     return {
         "categories": categories_sorted,
         "result": numpy.squeeze(y).tolist(),

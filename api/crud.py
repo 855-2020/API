@@ -33,7 +33,7 @@ def is_user_admin(db: Session, db_user: models.User) -> bool:
 def get_model(db: Session, model_id: int, roles: Optional[Query], admin: bool = False) -> Optional[models.Model]:
     """Retrieve an model by id"""
 
-    query: Query = db.query(models.Model).filter_by(id=model_id).join(models.Model.roles)
+    query: Query = db.query(models.Model).filter_by(id=model_id).outerjoin(models.Model.roles)
     if not admin:
         query = query.filter(models.Role.id.in_(roles.subquery()))
     return query.scalar()
@@ -42,7 +42,7 @@ def get_model(db: Session, model_id: int, roles: Optional[Query], admin: bool = 
 def get_models_filtered_role(db: Session, roles: Optional[Query], admin: bool = False) -> List[models.Model]:
     """Retrieve models filtered by roles"""
 
-    query: Query = db.query(models.Model).join(models.Model.roles)
+    query: Query = db.query(models.Model).outerjoin(models.Model.roles)
     if not admin:
         query = query.filter(models.Role.id.in_(roles.subquery()))
     return query.all()

@@ -92,7 +92,6 @@ class CategoryBase(BaseModel):
     name: str
     pos: int
     description: str
-    coefficient: float
     unit: str
 
 

@@ -45,6 +45,7 @@ class Model(Base):
 
     economic_matrix = Column(NumpyColumnType, nullable=False)
     leontief_matrix = Column(NumpyColumnType, nullable=False)
+    catimpct_matrix = Column(NumpyColumnType, nullable=False)
 
     sectors = relationship("Sector", backref="model")
     categories = relationship("Category", backref="model")
@@ -75,5 +76,4 @@ class Category(Base):
     model_id = Column(Integer, ForeignKey(Model.id), nullable=False)
     pos = Column(Integer, nullable=False)
     description = Column(String, nullable=False)
-    coefficient = Column(Float, nullable=False)
     unit = Column(String, nullable=False)
