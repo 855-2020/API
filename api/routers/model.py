@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from .. import crud, models
 from ..deps import get_db
-from ..schemas import Model, SimInput, SimOutput, ClonedModel, SectorCreate, CategoryCreate
+from ..schemas import Model, SimInput, SimOutput, ClonedModel, SectorCreate, CategoryCreate, CoefsInput
 from ..security import get_current_user_optional, get_admin_user, get_current_user
 
 router = APIRouter()
@@ -129,6 +129,8 @@ def model_new_sector(model_id: int, sector: SectorCreate,
     model = crud.fetch_model(db, model_id, db_user)
     if model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if sector.pos >= model.economic_matrix.shape[1]:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
     cls = models.TempSector if model_id < 0 else models.Sector
     # noinspection PyArgumentList
     new_sector = cls(name=sector.name, model_id=model.id, pos=sector.pos, value_added=sector.value_added)
@@ -165,8 +167,31 @@ def model_delete_sector(model_id: int, sector_pos: int,
     db.flush()
 
 
+@router.post('/{model_id}/coefs/update')
+def model_coefs_update(model_id: int, coefs: CoefsInput, db: Session = Depends(get_db),
+                       db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    model = crud.fetch_model(db, model_id, db_user)
+    if model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    model.economic_matrix = numpy.array(coefs.values, dtype=numpy.float)
+    model.leontief_matrix = numpy.linalg.inv(numpy.eye(model.economic_matrix.shape[0]) - model.economic_matrix)
+    db.commit()
+    db.flush()
+
+
+@router.post('/{model_id}/impacts/update')
+def model_impacts_update(model_id: int, coefs: CoefsInput, db: Session = Depends(get_db),
+                         db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    model = crud.fetch_model(db, model_id, db_user)
+    if model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    model.catimpct_matrix = numpy.array(coefs.values, dtype=numpy.float)
+    db.commit()
+    db.flush()
+
+
 @router.post('/{model_id}/impact/new')
-def model_new_sector(model_id: int, category: CategoryCreate,
+def model_new_impact(model_id: int, category: CategoryCreate,
                      db: Session = Depends(get_db),
                      db_user: Optional[models.User] = Depends(get_current_user_optional)):
     model = crud.fetch_model(db, model_id, db_user)
@@ -185,7 +210,7 @@ def model_new_sector(model_id: int, category: CategoryCreate,
 
 
 @router.delete('/{model_id}/impact/{impact_pos}')
-def model_delete_sector(model_id: int, impact_pos: int,
+def model_delete_impact(model_id: int, impact_pos: int,
                         db: Session = Depends(get_db),
                         db_user: Optional[models.User] = Depends(get_current_user_optional)):
     model = crud.fetch_model(db, model_id, db_user)

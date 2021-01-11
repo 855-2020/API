@@ -120,6 +120,7 @@ class ModelBase(BaseModel):
     categories: List[Category]
     economic_matrix: List[List[float]]
     leontief_matrix: List[List[float]]
+    catimpct_matrix: List[List[float]]
 
     roles: List[Role]
 
@@ -127,7 +128,7 @@ class ModelBase(BaseModel):
     def fetch_dynamic(cls, value):
         return value.all() if isinstance(value, Query) else value
 
-    @validator('economic_matrix', 'leontief_matrix', pre=True)
+    @validator('economic_matrix', 'leontief_matrix', 'catimpct_matrix', pre=True)
     def convert_numpy(cls, value):
         return value.tolist() if isinstance(value, numpy.ndarray) else value
 
@@ -149,6 +150,10 @@ class Model(ModelBase):
 
 class SimInput(BaseModel):
     values: Dict[int, float]
+
+
+class CoefsInput(BaseModel):
+    values: List[List[float]]
 
 
 class SimOutput(BaseModel):
