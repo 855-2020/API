@@ -104,8 +104,17 @@ def model_sim(model_id: int, values: SimInput,
     model = crud.fetch_model(db, model_id, db_user)
     if model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    # noinspection PyPep8Naming
-    L: ndarray = model.leontief_matrix
+    if values.change is not None:
+        change = numpy.array(values.change, dtype=numpy.float)
+        if change.shape != model.leontief_matrix.shape:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+        # noinspection PyPep8Naming
+        A: ndarray = (1+change)*model.economic_matrix
+        L: ndarray = numpy.linalg.inv(numpy.eye(A.shape[0])-A)
+    else:
+        # noinspection PyPep8Naming
+        L: ndarray = model.leontief_matrix
+
     x = numpy.zeros((L.shape[0], 1), dtype=numpy.float)
     for (idx, val) in values.values.items():
         if idx > x.size:

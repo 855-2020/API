@@ -150,6 +150,7 @@ class Model(ModelBase):
 
 class SimInput(BaseModel):
     values: Dict[int, float]
+    change: Optional[List[List[float]]]
 
 
 class CoefsInput(BaseModel):
