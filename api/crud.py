@@ -5,7 +5,7 @@ CRUD
 # pylint: disable=C0321
 # pylint: disable=no-name-in-module
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from sqlalchemy import literal
 from sqlalchemy.orm import Session, Query
@@ -36,6 +36,17 @@ def get_model(db: Session, model_id: int, roles: Optional[Query], admin: bool = 
     query: Query = db.query(models.Model).filter_by(id=model_id).outerjoin(models.Model.roles)
     if not admin:
         query = query.filter(models.Role.id.in_(roles.subquery()))
+    return query.scalar()
+
+
+# Model
+def get_temporary_model(db: Session, model_id: int, user: models.User, admin: bool = False) -> Optional[
+    models.TempModel]:
+    """Retrieve an model by id"""
+
+    query: Query = db.query(models.TempModel).filter_by(id=model_id)
+    if not admin:
+        query = query.filter_by(user_id=user.id)
     return query.scalar()
 
 
@@ -81,3 +92,17 @@ def try_delete_role(db: Session, role_id: int, force: bool = False) -> bool:
     db.delete(db_role)
     db.commit()
     return True
+
+
+def fetch_model(db: Session, model_id: int, user: Optional[models.User]) -> Union[models.Model, models.TempModel]:
+    if model_id >= 0:
+        if user is None:
+            model = get_model(db, model_id, query_guest_role(db))
+        elif is_user_admin(db, user):
+            model = get_model(db, model_id, None, True)
+        else:
+            # noinspection PyUnresolvedReferences
+            model = get_model(db, model_id, db.query(models.Role.id).select_entity_from(user.roles.subquery()))
+    else:
+        model = get_temporary_model(db, -model_id, user, False if user is None else is_user_admin(db, user))
+    return model

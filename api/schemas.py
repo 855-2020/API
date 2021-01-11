@@ -150,3 +150,22 @@ class SimOutput(BaseModel):
     categories: List[Category]
     result: List[float]
     detailed: List[List[float]]
+
+
+class ClonedModel(BaseModel):
+    """Used for returning a temporary model"""
+
+    id: int
+    name: str
+    description: Optional[str]
+    sectors: List[Sector]
+    categories: List[Category]
+    economic_matrix: List[List[float]]
+    catimpct_matrix: List[List[float]]
+
+    @validator('economic_matrix', 'catimpct_matrix', pre=True)
+    def convert_numpy(cls, value):
+        return value.tolist() if isinstance(value, numpy.ndarray) else value
+
+    class Config:
+        orm_mode = True
