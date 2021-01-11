@@ -70,17 +70,21 @@ class SectorBase(BaseModel):
 
     name: str
     value_added: float
+    pos: int
 
 
 class SectorCreate(SectorBase):
     """Class for create Sector methods"""
-    model_id: int
+    direct: List[float] # N values
+    reverse: List[float] # N-1 values
+    impacts: List[float] # M values
 
 
 class Sector(SectorBase):
     """Class Sector schema"""
 
     id: int
+    model_id: int
 
     class Config:
         """Class used to provide configurations to Pydantic"""
@@ -96,11 +100,12 @@ class CategoryBase(BaseModel):
 
 
 class CategoryCreate(CategoryBase):
-    model_id: int
+    impacts: List[float] # N values
 
 
 class Category(CategoryBase):
     id: int
+    model_id: int
 
     class Config:
         orm_mode = True

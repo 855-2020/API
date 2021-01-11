@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from .. import crud, models
 from ..deps import get_db
-from ..schemas import Model, SimInput, SimOutput, ClonedModel
+from ..schemas import Model, SimInput, SimOutput, ClonedModel, SectorCreate, CategoryCreate
 from ..security import get_current_user_optional, get_admin_user, get_current_user
 
 router = APIRouter()
@@ -122,8 +122,91 @@ def model_sim(model_id: int, values: SimInput,
     }
 
 
+@router.post('/{model_id}/sector/new')
+def model_new_sector(model_id: int, sector: SectorCreate,
+                     db: Session = Depends(get_db),
+                     db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    model = crud.fetch_model(db, model_id, db_user)
+    if model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    cls = models.TempSector if model_id < 0 else models.Sector
+    # noinspection PyArgumentList
+    new_sector = cls(name=sector.name, model_id=model.id, pos=sector.pos, value_added=sector.value_added)
+    db.query(cls).filter_by(model_id=model.id).filter(cls.pos >= new_sector.pos).update({'pos': cls.pos + 1})
+    db.add(new_sector)
+    model.economic_matrix = numpy.insert(model.economic_matrix, new_sector.pos, numpy.array(sector.reverse), 1)
+    model.economic_matrix = numpy.insert(model.economic_matrix, new_sector.pos, numpy.array(sector.direct), 0)
+    model.leontief_matrix = numpy.linalg.inv(numpy.eye(model.economic_matrix.shape[0]) - model.economic_matrix)
+    model.catimpct_matrix = numpy.insert(model.catimpct_matrix, new_sector.pos, numpy.array(sector.impacts), 1)
+    db.commit()
+    db.flush()
+
+
+@router.delete('/{model_id}/sector/{sector_pos}')
+def model_delete_sector(model_id: int, sector_pos: int,
+                        db: Session = Depends(get_db),
+                        db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    model = crud.fetch_model(db, model_id, db_user)
+    if model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    cls = models.TempSector if model_id < 0 else models.Sector
+    sector = db.query(cls).filter_by(model_id=model.id, pos=sector_pos).scalar()
+    if sector is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    db.query(cls).filter_by(model_id=model.id) \
+        .filter(cls.pos >= sector_pos).update({'pos': cls.pos - 1})
+    db.delete(sector)
+    model.economic_matrix = numpy.delete(model.economic_matrix, sector_pos, 0)
+    model.economic_matrix = numpy.delete(model.economic_matrix, sector_pos, 1)
+    model.leontief_matrix = numpy.linalg.inv(numpy.eye(model.economic_matrix.shape[0]) - model.economic_matrix)
+    model.catimpct_matrix = numpy.delete(model.catimpct_matrix, sector_pos, 1)
+    db.commit()
+    db.flush()
+
+
+@router.post('/{model_id}/impact/new')
+def model_new_sector(model_id: int, category: CategoryCreate,
+                     db: Session = Depends(get_db),
+                     db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    model = crud.fetch_model(db, model_id, db_user)
+    if model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    cls = models.TempCategory if model_id < 0 else models.Category
+    # noinspection PyArgumentList
+    new_category = cls(name=category.name, model_id=model.id, pos=category.pos, description=category.description,
+                       unit=category.unit)
+    db.query(cls).filter_by(model_id=model.id).filter(
+        cls.pos >= new_category.pos).update({'pos': cls.pos + 1})
+    db.add(new_category)
+    model.catimpct_matrix = numpy.insert(model.catimpct_matrix, new_category.pos, numpy.array(category.impacts), 0)
+    db.commit()
+    db.flush()
+
+
+@router.delete('/{model_id}/impact/{impact_pos}')
+def model_delete_sector(model_id: int, impact_pos: int,
+                        db: Session = Depends(get_db),
+                        db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    model = crud.fetch_model(db, model_id, db_user)
+    if model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    cls = models.TempSector if model_id < 0 else models.Sector
+    category = db.query(cls).filter_by(model_id=model.id, pos=impact_pos).scalar()
+    if category is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    db.query(cls).filter_by(model_id=model.id).filter(cls.pos >= impact_pos).update({'pos': cls.pos - 1})
+    db.delete(category)
+    model.catimpct_matrix = numpy.delete(model.catimpct_matrix, impact_pos, 0)
+    db.commit()
+    db.flush()
+
+
 @router.post('/{model_id}/add_roles', dependencies=[Depends(get_admin_user)])
 def add_model_roles(model_id: int, role_ids: List[int], db: Session = Depends(get_db)):
+    if model_id < 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     db_model: models.Model = db.query(models.Model).filter_by(id=model_id).scalar()
     if db_model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -134,6 +217,8 @@ def add_model_roles(model_id: int, role_ids: List[int], db: Session = Depends(ge
 
 @router.post('/{model_id}/remove_roles', dependencies=[Depends(get_admin_user)])
 def remove_model_roles(model_id: int, role_ids: List[int], db: Session = Depends(get_db)):
+    if model_id < 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     db_model: models.Model = db.query(models.Model).filter_by(id=model_id).scalar()
     if db_model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -145,11 +230,13 @@ def remove_model_roles(model_id: int, role_ids: List[int], db: Session = Depends
 
 
 @router.delete('/{model_id}', dependencies=[Depends(get_admin_user)])
-def remove_model_roles(model_id: int, db: Session = Depends(get_db)):
+def remove_model_roles(model_id: int, db: Session = Depends(get_db), db_user: models.User = Depends(get_current_user)):
     if model_id >= 0:
+        if not crud.is_user_admin(db, db_user):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
         db_model: models.Model = db.query(models.Model).filter_by(id=model_id).scalar()
     else:
-        db_model: models.TempModel = db.query(models.TempModel).filter_by(id=-model_id).scalar()
+        db_model: models.TempModel = db.query(models.TempModel).filter_by(id=-model_id, user_id=db_user.id).scalar()
     if db_model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     db.delete(db_model)
