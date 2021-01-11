@@ -31,6 +31,7 @@ def create_new(user: UserCreate, db: Session = Depends(get_db)):
     new_user = models.User(**user.dict())
     db.add(new_user)
     db.commit()
+    db.flush()
     return new_user
 
 
@@ -42,6 +43,7 @@ def read_self(password: UserPassword, db: Session = Depends(get_db),
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
     current_user.password = get_password_hash(password.new_password.get_secret_value())
     db.commit()
+    db.flush()
 
 
 @router.post('/{user_id}/update_password', dependencies=[Depends(get_admin_user)])
@@ -51,6 +53,16 @@ def read_self(user_id: int, password: UserPassword, db: Session = Depends(get_db
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     db_user.password = get_password_hash(password.new_password.get_secret_value())
     db.commit()
+    db.flush()
+
+
+@router.put('/me/update')
+def update_self(user: User, db: Session = Depends(get_db),
+              current_user: models.User = Depends(get_current_user)):
+    for attr in ["firstname", "lastname", "email", "institution"]:
+        setattr(current_user, attr, getattr(user, attr))
+    db.commit()
+    db.flush()
 
 
 @router.get('/list', response_model=List[User],
@@ -60,7 +72,7 @@ def list_all_users(db: Session = Depends(get_db)):
 
 
 @router.get('/{user_id}/details', response_model=User, dependencies=[Depends(get_admin_user)])
-def list_all_users(user_id: int, db: Session = Depends(get_db)):
+def user_details(user_id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter_by(id=user_id).first()
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -68,13 +80,14 @@ def list_all_users(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.put('/{user_id}/update', dependencies=[Depends(get_admin_user)])
-def list_all_users(user: User, db: Session = Depends(get_db)):
+def update_user(user: User, db: Session = Depends(get_db)):
     db_user: models.User = db.query(models.User).filter_by(id=user.id).first()
     if db_user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     for attr in ["firstname", "lastname", "email", "institution"]:
         setattr(db_user, attr, getattr(user, attr))
     db.commit()
+    db.flush()
 
 
 @router.post('/{user_id}/add_roles', dependencies=[Depends(get_admin_user)])
@@ -85,6 +98,7 @@ def add_user_roles(user_id: int, role_ids: List[int], db: Session = Depends(get_
     new_roles: list[models.Role] = db.query(models.Role).filter(models.Role.id.in_(role_ids)).all()
     db_user.roles.extend(new_roles)
     db.commit()
+    db.flush()
 
 
 @router.post('/{user_id}/remove_roles', dependencies=[Depends(get_admin_user)])
@@ -97,3 +111,4 @@ def remove_user_roles(user_id: int, role_ids: List[int], db: Session = Depends(g
             .where(models.user_roles.c.role_id.in_(role_ids)))
     db.execute(stmt)
     db.commit()
+    db.flush()
