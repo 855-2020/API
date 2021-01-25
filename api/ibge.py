@@ -2,6 +2,7 @@
 Adquire dados do IBGE
 """
 from functools import lru_cache
+
 import numpy as np
 import pandas as pd
 import pyexcel as p
@@ -24,7 +25,7 @@ def load_sheet(book, sheet_name):
     return sheet
 
 
-def load_sheet_slice(book, sheet_name, slice_, target_type="float"):
+def load_sheet_slice(book, sheet_name, slice_, target_type=float) -> np.ndarray:
     """
     Given a loaded Pyexcel book, its sheet name and a valid
     Numpy slice, returns the data inside that slice as a
@@ -34,6 +35,7 @@ def load_sheet_slice(book, sheet_name, slice_, target_type="float"):
         book (`pyexcel.Book`): A loaded `Matriz de Insumo Produto` notebook
         sheet_name (`str`): The sheet's name
         slice_ (`tuple`): A valid numpy slice, as returned by `numpy.s_`
+        target_type (`type`):
     """
     data = load_sheet(book, sheet_name)
     data = np.array(data)
@@ -110,8 +112,8 @@ def get_added_value(va_book):
         values = np.delete(values, column_b, axis=0)
         return values.T
 
-    operations_titles = load_sheet_slice(va_book, "VA", np.s_[5:-5, 0], target_type=str)
-    values = load_sheet_slice(va_book, "VA", np.s_[5:-5, 1:-1])
+    operations_titles = load_sheet_slice(va_book, "VA", np.s_[5:-6, 0], target_type=str)
+    values = load_sheet_slice(va_book, "VA", np.s_[5:-6, 1:-1])
     values = sum_and_replace(values, 40, 41)
     added_value = zip(operations_titles, values)
     added_value = [[a, *b] for a, b in added_value]

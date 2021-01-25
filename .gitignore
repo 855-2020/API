@@ -146,3 +146,4 @@ analyzer/.snakemake
 # End of https://www.gitignore.io/api/python,visualstudiocode
 .~lock.*
 temp.xlsx
+z_matrix.xlsx

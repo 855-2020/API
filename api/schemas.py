@@ -70,21 +70,44 @@ class SectorBase(BaseModel):
 
     name: str
     value_added: float
+    pos: int
 
 
 class SectorCreate(SectorBase):
     """Class for create Sector methods"""
-    model_id: int
+    direct: List[float] # N values
+    reverse: List[float] # N-1 values
+    impacts: List[float] # M values
 
 
 class Sector(SectorBase):
     """Class Sector schema"""
 
     id: int
+    model_id: int
 
     class Config:
         """Class used to provide configurations to Pydantic"""
 
+        orm_mode = True
+
+
+class CategoryBase(BaseModel):
+    name: str
+    pos: int
+    description: str
+    unit: str
+
+
+class CategoryCreate(CategoryBase):
+    impacts: List[float] # N values
+
+
+class Category(CategoryBase):
+    id: int
+    model_id: int
+
+    class Config:
         orm_mode = True
 
 
@@ -94,8 +117,10 @@ class ModelBase(BaseModel):
     name: str
     description: Optional[str]
     sectors: List[Sector]
+    categories: List[Category]
     economic_matrix: List[List[float]]
     leontief_matrix: List[List[float]]
+    catimpct_matrix: List[List[float]]
 
     roles: List[Role]
 
@@ -103,7 +128,7 @@ class ModelBase(BaseModel):
     def fetch_dynamic(cls, value):
         return value.all() if isinstance(value, Query) else value
 
-    @validator('economic_matrix', 'leontief_matrix', pre=True)
+    @validator('economic_matrix', 'leontief_matrix', 'catimpct_matrix', pre=True)
     def convert_numpy(cls, value):
         return value.tolist() if isinstance(value, numpy.ndarray) else value
 
@@ -123,52 +148,35 @@ class Model(ModelBase):
         orm_mode = True
 
 
-class ModelInput(BaseModel):
+class SimInput(BaseModel):
     values: Dict[int, float]
+    change: Optional[List[List[float]]]
 
 
-# Activity
-class ActivityBase(BaseModel):
-    """Class base for Activity schema"""
+class CoefsInput(BaseModel):
+    values: List[List[float]]
 
+
+class SimOutput(BaseModel):
+    categories: List[Category]
+    result: List[float]
+    detailed: List[List[float]]
+
+
+class ClonedModel(BaseModel):
+    """Used for returning a temporary model"""
+
+    id: int
     name: str
-    desc: str
+    description: Optional[str]
+    sectors: List[Sector]
+    categories: List[Category]
+    economic_matrix: List[List[float]]
+    catimpct_matrix: List[List[float]]
 
-
-class ActivityCreate(ActivityBase):
-    """Class for create Activity methods"""
-
-
-class Activity(ActivityBase):
-    """Class Activity schema"""
-
-    id: int
+    @validator('economic_matrix', 'catimpct_matrix', pre=True)
+    def convert_numpy(cls, value):
+        return value.tolist() if isinstance(value, numpy.ndarray) else value
 
     class Config:
-        """Class used to provide configurations to Pydantic"""
-
-        orm_mode = True
-
-
-# Activity Coefficient
-class ActivityCoefficientBase(BaseModel):
-    """Class base for Coefficient_Activity schema"""
-
-    value: float
-
-
-class ActivityCoefficientCreate(ActivityCoefficientBase):
-    """Class for create CoefficientActivityCreate methods"""
-
-
-class ActivityCoefficient(ActivityCoefficientBase):
-    """Class CoefficientActivity schema"""
-
-    id: int
-    sector_id: int
-    activity_id: int
-
-    class Config:
-        """Class used to provide configurations to Pydantic"""
-
         orm_mode = True

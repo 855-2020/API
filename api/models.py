@@ -27,11 +27,11 @@ class Role(Base):
     name = Column(String, nullable=False)
     description = Column(String)
 
-    users = relationship('User', lazy='dynamic', secondary=lambda: user_roles)
+    users = relationship('User', lazy='dynamic', secondary=lambda: user_roles, passive_deletes=True)
 
 
 user_roles = Table('user_roles', Base.metadata,
-                   Column('user_id', Integer, ForeignKey(User.id), primary_key=True),
+                   Column('user_id', Integer, ForeignKey(User.id, ondelete="CASCADE"), primary_key=True),
                    Column('role_id', Integer, ForeignKey(Role.id), primary_key=True),
                    )
 
@@ -45,13 +45,15 @@ class Model(Base):
 
     economic_matrix = Column(NumpyColumnType, nullable=False)
     leontief_matrix = Column(NumpyColumnType, nullable=False)
+    catimpct_matrix = Column(NumpyColumnType, nullable=False)
 
-    sectors = relationship("Sector", backref="model")
-    roles = relationship('Role', lazy='dynamic', secondary=lambda: model_roles)
+    sectors = relationship("Sector", backref="model", cascade="all, delete-orphan", passive_deletes=True)
+    categories = relationship("Category", backref="model", cascade="all, delete-orphan", passive_deletes=True)
+    roles = relationship('Role', lazy='dynamic', secondary=lambda: model_roles, passive_deletes=True)
 
 
 model_roles = Table('model_roles', Base.metadata,
-                    Column('model_id', Integer, ForeignKey(Model.id), primary_key=True),
+                    Column('model_id', Integer, ForeignKey(Model.id, ondelete="CASCADE"), primary_key=True),
                     Column('role_id', Integer, ForeignKey(Role.id), primary_key=True),
                     )
 
@@ -61,30 +63,57 @@ class Sector(Base):
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
     name = Column(String(100), index=True, nullable=False)
-    model_id = Column(Integer, ForeignKey(Model.id), nullable=False)
+    model_id = Column(Integer, ForeignKey(Model.id, ondelete="CASCADE"), nullable=False)
     pos = Column(Integer, nullable=False)
     value_added = Column(Float, nullable=False)
 
 
-class Activity(Base):
-    __tablename__ = "activities"
+class Category(Base):
+    __tablename__ = "categories"
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
-    name = Column(String(10))
-    desc = Column(String(100))
+    name = Column(String(100), index=True, nullable=False)
+    model_id = Column(Integer, ForeignKey(Model.id, ondelete="CASCADE"), nullable=False)
+    pos = Column(Integer, nullable=False)
+    description = Column(String, nullable=False)
+    unit = Column(String, nullable=False)
 
 
-class ActivityCoefficient(Base):
-    __tablename__ = "coefs_activity"
+class TempModel(Base):
+    __tablename__ = "temp_models"
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
-    sector_id = Column(
-        Integer, ForeignKey("sectors.id"), nullable=False, index=True
-    )
-    activity_id = Column(
-        Integer, ForeignKey("activities.id"), nullable=False, index=True
-    )
-    value = Column(Float, nullable=False)
+    name = Column(String, index=True, nullable=False)
+    description = Column(String)
+    model_id = Column(Integer, ForeignKey(Model.id), nullable=False)
+    user_id = Column(Integer, ForeignKey(User.id), nullable=False)
 
-    sector = relationship("Sector")
-    activity = relationship("Activity")
+    economic_matrix = Column(NumpyColumnType, nullable=False)
+    leontief_matrix = Column(NumpyColumnType, nullable=False)
+    catimpct_matrix = Column(NumpyColumnType, nullable=False)
+
+    sectors = relationship("TempSector", backref="model", cascade="all, delete-orphan", passive_deletes=True)
+    categories = relationship("TempCategory", backref="model", cascade="all, delete-orphan", passive_deletes=True)
+    base_model = relationship("Model")
+    owner = relationship("User")
+
+
+class TempSector(Base):
+    __tablename__ = "temp_sectors"
+
+    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
+    name = Column(String(100), index=True, nullable=False)
+    model_id = Column(Integer, ForeignKey(TempModel.id, ondelete="CASCADE"), nullable=False)
+    pos = Column(Integer, nullable=False)
+    value_added = Column(Float, nullable=False)
+
+
+class TempCategory(Base):
+    __tablename__ = "temp_categories"
+
+    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
+    name = Column(String(100), index=True, nullable=False)
+    model_id = Column(Integer, ForeignKey(TempModel.id, ondelete="CASCADE"), nullable=False)
+    pos = Column(Integer, nullable=False)
+    description = Column(String, nullable=False)
+    unit = Column(String, nullable=False)
