@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from .. import crud, models
 from ..deps import get_db
-from ..schemas import Model, SimInput, SimOutput, ClonedModel, SectorCreate, CategoryCreate, CoefsInput
+from ..schemas import Model, SimInput, SimOutput, ClonedModel, SectorCreate, CategoryCreate, CoefsInput, IdentifierModel
 from ..security import get_current_user_optional, get_admin_user, get_current_user
 
 router = APIRouter()
@@ -74,7 +74,7 @@ def clone_model(model_id: int, db: Session = Depends(get_db),
 
 
 # noinspection PyUnresolvedReferences
-@router.post('/{model_id}/persist')
+@router.post('/{model_id}/persist', response_model=IdentifierModel)
 def persist_model(model_id: int, db: Session = Depends(get_db),
                   db_user: models.User = Depends(get_current_user)):
     if model_id >= 0:
@@ -96,6 +96,9 @@ def persist_model(model_id: int, db: Session = Depends(get_db),
     db.delete(tmp_model)
     db.commit()
     db.flush()
+    return {
+      "id": new_model.id,
+    }
 
 
 @router.post('/{model_id}/simulate', response_model=SimOutput)
@@ -225,7 +228,7 @@ def model_delete_impact(model_id: int, impact_pos: int,
     model = crud.fetch_model(db, model_id, db_user)
     if model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    cls = models.TempSector if model_id < 0 else models.Sector
+    cls = models.TempCategory if model_id < 0 else models.Category
     category = db.query(cls).filter_by(model_id=model.id, pos=impact_pos).scalar()
     if category is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

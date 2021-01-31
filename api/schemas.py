@@ -180,3 +180,7 @@ class ClonedModel(BaseModel):
 
     class Config:
         orm_mode = True
+
+class IdentifierModel(BaseModel):
+    """Used for returning a simple identifier"""
+    id: int
