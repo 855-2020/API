@@ -48,9 +48,9 @@ def detail_model(model_id: int, db: Session = Depends(get_db),
 @router.post('/new', response_model=Model, dependencies=[Depends(get_admin_user)])
 def new_model(name: str, role_ids: List[int], description: Optional[str] = None, db: Session = Depends(get_db)):
     new_model = models.Model(name=name, description=description)
-    new_model.economic_matrix = numpy.array([], dtype=float, ndmin=2)
-    new_model.leontief_matrix = numpy.array([], dtype=float, ndmin=2)
-    new_model.catimpct_matrix = numpy.array([], dtype=float, ndmin=2)
+    new_model.economic_matrix = numpy.empty((0, 0))
+    new_model.leontief_matrix = numpy.empty((0, 0))
+    new_model.catimpct_matrix = numpy.empty((0, 0))
     roles = db.query(models.Role).filter(models.Role.id.in_(role_ids)).all()
     new_model.roles.extend(roles)
     db.add(new_model)
@@ -188,7 +188,7 @@ def model_new_sector(model_id: int, sector: SectorCreate,
     model = crud.fetch_model(db, model_id, db_user)
     if model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    if sector.pos >= model.economic_matrix.shape[1]:
+    if sector.pos > model.economic_matrix.shape[1]:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
     cls = models.TempSector if model_id < 0 else models.Sector
     # noinspection PyArgumentList
