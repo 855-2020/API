@@ -94,7 +94,8 @@ def try_delete_role(db: Session, role_id: int, force: bool = False) -> bool:
     return True
 
 
-def fetch_model(db: Session, model_id: int, user: Optional[models.User]) -> Union[models.Model, models.TempModel]:
+def fetch_model(db: Session, model_id: int, user: Optional[models.User]) -> \
+        Optional[Union[models.Model, models.TempModel]]:
     if model_id >= 0:
         if user is None:
             model = get_model(db, model_id, query_guest_role(db))

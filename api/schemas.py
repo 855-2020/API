@@ -27,7 +27,6 @@ class Role(RoleBase):
 
 
 class UserBase(BaseModel):
-    """Class base for User"""
 
     username: str
     firstname: str

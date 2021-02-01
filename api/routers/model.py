@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 
 from .. import crud, models
 from ..deps import get_db
-from ..schemas import Model, SimInput, SimOutput, ClonedModel, SectorCreate, CategoryCreate, CoefsInput, IdentifierModel
+from ..schemas import Model, SimInput, SimOutput, ClonedModel, SectorCreate, CategoryCreate, CoefsInput, \
+    IdentifierModel, Sector, Category
 from ..security import get_current_user_optional, get_admin_user, get_current_user
 
 router = APIRouter()
@@ -17,6 +18,10 @@ router = APIRouter()
 @router.get('/list', response_model=List[Model],
             response_model_exclude={'economic_matrix', 'leontief_matrix', 'catimpct_matrix', 'sectors'})
 def model_list(db: Session = Depends(get_db), db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    """
+    Lists all models that logged-in user has access
+    [Admin: lists all models]
+    """
     if db_user is not None and crud.is_user_admin(db, db_user):
         return crud.get_models_filtered_role(db, None, True)
     current_roles = crud.query_user_role_list(db, db_user.id) if db_user is not None else crud.query_guest_role(db)
@@ -26,6 +31,9 @@ def model_list(db: Session = Depends(get_db), db_user: Optional[models.User] = D
 @router.get('/{model_id}/get', response_model=Model)
 def detail_model(model_id: int, db: Session = Depends(get_db),
                  db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    """
+    Returns data for model, including the full matrices
+    """
     if model_id < 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     if db_user is not None and crud.is_user_admin(db, db_user):
@@ -37,10 +45,42 @@ def detail_model(model_id: int, db: Session = Depends(get_db),
     return model
 
 
-# noinspection PyUnresolvedReferences
+@router.post('/new', response_model=Model, dependencies=[Depends(get_admin_user)])
+def new_model(name: str, role_ids: List[int], description: Optional[str] = None, db: Session = Depends(get_db)):
+    new_model = models.Model(name=name, description=description)
+    new_model.economic_matrix = numpy.array([], dtype=float, ndmin=2)
+    new_model.leontief_matrix = numpy.array([], dtype=float, ndmin=2)
+    new_model.catimpct_matrix = numpy.array([], dtype=float, ndmin=2)
+    roles = db.query(models.Role).filter(models.Role.id.in_(role_ids)).all()
+    new_model.roles.extend(roles)
+    db.add(new_model)
+    db.commit()
+    db.flush()
+    return new_model
+
+
+@router.post('/{model_id}/modify')
+def modify_model(model_id: int, name: Optional[str], description: Optional[str], db: Session = Depends(get_db),
+                 db_user: models.User = Depends(get_admin_user)):
+    model = crud.fetch_model(db, model_id, db_user)
+    if model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if name is not None:
+        model.name = name
+    if description is not None:
+        model.description = description
+    db.commit()
+    db.flush()
+
+
+# noinspection PyUnresolvedReferences,PyTypeChecker
 @router.post('/{model_id}/clone', response_model=ClonedModel)
 def clone_model(model_id: int, db: Session = Depends(get_db),
                 db_user: models.User = Depends(get_current_user)):
+    """
+    Create a new temporary model from a base model.
+    Logged-in user becomes the owner of this model and can make changes.
+    """
     if model_id < 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     if crud.is_user_admin(db, db_user):
@@ -73,10 +113,13 @@ def clone_model(model_id: int, db: Session = Depends(get_db),
     }
 
 
-# noinspection PyUnresolvedReferences
+# noinspection PyUnresolvedReferences,PyTypeChecker
 @router.post('/{model_id}/persist', response_model=IdentifierModel)
 def persist_model(model_id: int, db: Session = Depends(get_db),
                   db_user: models.User = Depends(get_current_user)):
+    """
+    Converts temporary model to a regular model
+    """
     if model_id >= 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     tmp_model = crud.get_temporary_model(db, -model_id, db_user, crud.is_user_admin(db, db_user))
@@ -104,6 +147,10 @@ def persist_model(model_id: int, db: Session = Depends(get_db),
 @router.post('/{model_id}/simulate', response_model=SimOutput)
 def model_sim(model_id: int, values: SimInput,
               db: Session = Depends(get_db), db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    """
+    Run a simulation using the model and the input vector
+
+    """
     model = crud.fetch_model(db, model_id, db_user)
     if model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -154,6 +201,27 @@ def model_new_sector(model_id: int, sector: SectorCreate,
     model.catimpct_matrix = numpy.insert(model.catimpct_matrix, new_sector.pos, numpy.array(sector.impacts), 1)
     db.commit()
     db.flush()
+
+
+@router.post('/{model_id}/sector/{sector_pos}/modify', response_model=Sector)
+def model_modify_sector(model_id: int, sector_pos: int, name: Optional[str] = None, value_added: Optional[float] = None,
+                        db: Session = Depends(get_db),
+                        db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    model = crud.fetch_model(db, model_id, db_user)
+    if model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    cls = models.TempSector if model_id < 0 else models.Sector
+    sector = db.query(cls).filter_by(model_id=model.id, pos=sector_pos).scalar()
+    if sector is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if name is not None:
+        sector.name = name
+    if value_added is not None:
+        sector.value_added = value_added
+
+    db.commit()
+    db.flush()
+    return sector
 
 
 @router.delete('/{model_id}/sector/{sector_pos}')
@@ -220,6 +288,28 @@ def model_new_impact(model_id: int, category: CategoryCreate,
     db.commit()
     db.flush()
 
+
+@router.post('/{model_id}/impact/{impact_pos}/modify', response_model=Category)
+def model_modify_sector(model_id: int, impact_pos: int, name: Optional[str] = None, description: Optional[str] = None,
+                        unit: Optional[str] = None, db: Session = Depends(get_db),
+                        db_user: Optional[models.User] = Depends(get_current_user_optional)):
+    model = crud.fetch_model(db, model_id, db_user)
+    if model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    cls = models.TempCategory if model_id < 0 else models.Category
+    category = db.query(cls).filter_by(model_id=model.id, pos=impact_pos).scalar()
+    if category is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if name is not None:
+        category.name = name
+    if description is not None:
+        category.description = description
+    if unit is not None:
+        category.unit = unit
+
+    db.commit()
+    db.flush()
+    return category
 
 @router.delete('/{model_id}/impact/{impact_pos}')
 def model_delete_impact(model_id: int, impact_pos: int,
